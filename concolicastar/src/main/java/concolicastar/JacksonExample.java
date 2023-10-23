@@ -1,5 +1,6 @@
 package concolicastar;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONObject;
 
 public class JacksonExample {
 
@@ -7,7 +8,10 @@ public class JacksonExample {
         try {
             // Create a simple object for demonstration
             Person person = new Person("John", 30);
-
+            JSONObject obj = new JSONObject();
+            obj.put("name", "mkyong.com");
+            obj.put("age", 100);
+            System.out.println(obj);
             // Convert Java object to JSON string
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(person);
