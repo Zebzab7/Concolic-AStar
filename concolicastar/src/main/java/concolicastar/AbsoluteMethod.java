@@ -29,4 +29,8 @@ public class AbsoluteMethod {
     public void setMethodName(String name) {
         this.methodName = name;
     }
+
+    public String toString() {
+        return className + "." + methodName;
+    }
 }

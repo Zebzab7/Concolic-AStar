@@ -23,6 +23,6 @@ public class App
         
         Interpreter interpreter = new Interpreter(files);
         // interpreter.interpret("method");
-        interpreter.interpret(new AbsoluteMethod("Simple", "zero"));
+        interpreter.interpret(new AbsoluteMethod("Simple", "zero"), new Object[] {1, true, "hej"});
     }
 }

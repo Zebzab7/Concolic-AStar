@@ -22,9 +22,23 @@ public class Interpreter {
         }
     }
 
-    public void interpret(AbsoluteMethod am) {
+    public void interpret(AbsoluteMethod am, Object[] args) {
+        if (args == null) {
+            args = new Object[0];
+        }
         Bytecode bc = findMethod(am);
-        System.out.println(bc);
+        ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0);
+        for (Object object : args) {
+            stack.getLv().push(object);
+        }
+        while (stack.getPc() < bc.getBytecode().size()) {
+            JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
+            String oprString = (String) bytecode.get("opr");
+
+            // TODO: Handle instruction
+
+            stack.setPc(stack.getPc() + 1);
+        }
     }
 
     public Bytecode findMethod(AbsoluteMethod am) {
