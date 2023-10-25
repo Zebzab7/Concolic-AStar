@@ -36,6 +36,8 @@ public class Interpreter {
             String oprString = (String) bytecode.get("opr");
 
             // TODO: Handle instruction
+           stack = Operations.doFunction(stack, oprString);
+
 
             stack.setPc(stack.getPc() + 1);
         }
