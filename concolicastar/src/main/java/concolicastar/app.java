@@ -19,11 +19,10 @@ public class App
         System.out.println( "Hello World!" );
         //findFiles(path);
         ArrayList<JsonFile> files;
-        files = Folders.findFiles("course-02242-examples-main",".json");
-        for(JsonFile file : files) {
-            System.out.println(file.getMethods());
-            break;
-        }
-
+        files = Folders.findFiles("course-02242-examples-main/decompiled/dtu/compute/exec/","Simple.json");
+        
+        Interpreter interpreter = new Interpreter(files);
+        // interpreter.interpret("method");
+        interpreter.interpret(new AbsoluteMethod("Simple", "zero"));
     }
 }

@@ -100,7 +100,18 @@ class JsonFile{
 		this.fileName = fileName;
 		this.methods = methods;
 	}
-
+	
+	public JSONObject getMethodByName(String name) {
+		for(int i = 0; i < methods.size(); i++) {
+			JSONObject methodObj = (JSONObject) methods.get(i);
+			if(methodObj.get("name").equals(name)) {
+				// System.out.println("In loop: ");
+				// System.out.println(methodObj);
+				return methodObj;
+			}
+		}
+		throw new IllegalArgumentException("Method not found: " + name);
+	}
 	
 	//Getter and setter methods
 	public JSONObject getJsonObject(){
