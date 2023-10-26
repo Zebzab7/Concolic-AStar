@@ -1,4 +1,4 @@
-package concolicastar;
+package concolicastar.Model;
 
 public class AbsoluteMethod {
     public String className;

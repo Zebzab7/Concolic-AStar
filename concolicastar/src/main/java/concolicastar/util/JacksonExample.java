@@ -1,4 +1,4 @@
-package concolicastar;
+package concolicastar.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 
