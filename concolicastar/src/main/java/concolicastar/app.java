@@ -17,7 +17,6 @@ public class App
     public static void main( String[] args )
     {
         System.out.println( "Hello World!" );
-        //findFiles(path);
         ArrayList<JsonFile> files;
         files = Folders.findFiles("course-02242-examples-main/decompiled/dtu/compute/exec/","Simple.json");
         
