@@ -34,11 +34,15 @@ public class Interpreter {
         while (stack.getPc() < bc.getBytecode().size()) {
             JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
             String oprString = (String) bytecode.get("opr");
+            
             // TODO: Handle instruction
+            Operations op = new Operations(bytecode);
 
             stack = Operations.doOperation(stack, oprString);
 
             stack.setPc(stack.getPc() + 1);
+
+            // System.out.println(stack.toString());
         }
     }
 

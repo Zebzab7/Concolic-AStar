@@ -35,6 +35,18 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
                         </configuration>
                     </execution>
                 </executions>
+                <dependencies>
+                    <!-- https://mvnrepository.com/artifact/com.microsoft.z3/javaAPI -->
+                    <dependency>
+                        <groupId>com.microsoft.z3</groupId>
+                        <artifactId>libz3-java</artifactId>
+                        <version>4.8.8</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                
             </plugin>
         </plugins>
     </build>
