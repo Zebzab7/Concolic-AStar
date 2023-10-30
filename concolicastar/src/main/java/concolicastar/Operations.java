@@ -91,7 +91,15 @@ public class Operations {
         else{
             Stack.getLv().insert((Integer) bc.get("index"), el);        
         }
-        
+        return Stack;
+    }
+
+    public static ProgramStack _incr(ProgramStack Stack){
+        Element el = (Element) Stack.getLv().getIndexEl((Integer) bc.get("index"));
+        int value = (Integer) el.getValue();
+        int res = value + (Integer) bc.get("amount");
+        el.setValue(res);
+        Stack.getLv().replace(el, (Integer) bc.get("index"));
         return Stack;
     }
 

@@ -104,6 +104,10 @@ class Stack {
         stack.add(index, element);
     }
 
+    public void replace(Element el, int index) {
+        stack.set(index, el);
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[ ");
