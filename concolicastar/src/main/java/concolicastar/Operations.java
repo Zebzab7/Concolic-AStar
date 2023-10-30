@@ -70,8 +70,10 @@ public class Operations {
     }
 
     public static ProgramStack _binary(ProgramStack Stack){
-        Number a = Stack.getLv().popNum();
-        Number b = Stack.getLv().popNum();
+        Element ela = (Element) Stack.getLv().pop();
+        Number a = (Number) ela.getValue();
+        Element elb = (Element) Stack.getLv().pop();
+        Number b = (Number) elb.getValue();
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
             Number res = ConcolicExecution.doOperation(oprString,a,b);
