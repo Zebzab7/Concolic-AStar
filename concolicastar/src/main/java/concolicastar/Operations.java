@@ -31,20 +31,39 @@ public class Operations {
     //     return Stack;
     // }
     public static ProgramStack _load(ProgramStack Stack){
-        System.out.println("Not Implemented yet");;
-        //  Stack.getLv().push();
+        int index = (int) bc.get("index");
+        String type = (String) bc.get("type");
+        //get lv_type and values
+        // ProgramStack ps = new ProgramStack();
+        Element el = new Element(type,Stack.getLv().getIndexEl(index)); 
+        Stack.getLv().push(el);
         return Stack;
     }
 
     public static ProgramStack _push(ProgramStack Stack){
-
-        System.out.println("Not Implemented yet");;
-
+        JSONObject values = (JSONObject) bc.get("value");
+        Object value = (Number) values.get("value");
+        String type = (String) values.get("type");
+        Element el = new Element(type, value);
+        Stack.getLv().push(el);
         return Stack;
     }
     public static ProgramStack _return(ProgramStack Stack){
-        System.out.println("Not implemented yet");
-        return Stack;
+        // System.out.println("Not implemented yet");
+        if (bc.get("type") == null){
+            System.out.println("(return) None");
+            return Stack;
+        }else if(bc.get("type") == "int"){
+            System.out.println("(return) int: "+ Stack.getLv().popNum());
+            return Stack;
+        }else if(bc.get("type") == "float"){
+            System.out.println("(return) float: "+ Stack.getLv().popNum());
+            return Stack;
+        }else{
+            System.out.println("return type not implemented "+ bc.get("type").toString());
+            return Stack;
+        }
+       
     }
 
     public static ProgramStack _binary(ProgramStack Stack){

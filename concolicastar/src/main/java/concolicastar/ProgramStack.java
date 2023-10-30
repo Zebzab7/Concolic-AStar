@@ -9,7 +9,6 @@ public class ProgramStack {
     Stack op;
     AbsoluteMethod am;
     int pc;
-    
     public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc) {
         this.lv = lv;
         this.op = op;
@@ -54,6 +53,7 @@ public class ProgramStack {
 
 
 class Stack {    
+    public static Object Element;
     private ArrayList<Object> stack = new ArrayList<>();
 
     // Push an item onto the stack
@@ -84,6 +84,11 @@ class Stack {
             throw new IllegalArgumentException("Stack is empty");
         }
         return stack.get(stack.size() - 1);
+    }
+
+    //get specific object in stack
+    public Object getIndexEl(int index){
+        return stack.get(index);
     }
 
     public boolean isEmpty() {
