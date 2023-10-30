@@ -68,15 +68,6 @@ class Stack {
         }
         return stack.remove(stack.size() - 1);
     }
-    public Number popNum(){
-        if(isEmpty()){
-            throw new IllegalArgumentException("Stack is empty");
-        }
-        if(stack.get(stack.size()-1) instanceof Number){
-            return (Number) stack.remove(stack.size()-1);
-        }
-        throw new IllegalArgumentException("Top of stack is not a number");
-    }
 
     // Peek at the top item without removing it
     public Object peek() {

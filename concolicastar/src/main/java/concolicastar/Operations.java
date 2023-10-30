@@ -15,10 +15,12 @@ public class Operations {
     public static ProgramStack doOperation(ProgramStack stack, String opr){
         java.lang.reflect.Method method;
         try{
+            System.out.println("Operation: "+ opr);
             method = Operations.class.getDeclaredMethod("_"+opr, ProgramStack.class);
             stack = (ProgramStack) method.invoke(Operations.class,stack);
         } catch (Exception e) {
-            System.out.println("Error: Method might not exist "+ e);
+            System.out.println("Error: Method might not exist "+ e + " " + opr);
+            e.printStackTrace();
         }
         return stack;
     }
@@ -46,6 +48,7 @@ public class Operations {
         String type = (String) values.get("type");
         Element el = new Element(type, value);
         Stack.getLv().push(el);
+        System.out.println(Stack.toString());
         return Stack;
     }
     public static ProgramStack _return(ProgramStack Stack){
@@ -53,11 +56,11 @@ public class Operations {
         if (bc.get("type") == null){
             System.out.println("(return) None");
             return Stack;
-        }else if(bc.get("type") == "int"){
-            System.out.println("(return) int: "+ Stack.getLv().popNum());
+        }else if( bc.get("type").equals("int")){
+            System.out.println("(return) int: "+ Stack.getLv().pop());
             return Stack;
-        }else if(bc.get("type") == "float"){
-            System.out.println("(return) float: "+ Stack.getLv().popNum());
+        }else if(bc.get("type").equals("float")){
+            System.out.println("(return) float: "+ Stack.getLv().pop());
             return Stack;
         }else{
             System.out.println("return type not implemented "+ bc.get("type").toString());
