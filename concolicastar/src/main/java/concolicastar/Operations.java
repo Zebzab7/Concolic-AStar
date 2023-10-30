@@ -83,6 +83,16 @@ public class Operations {
         return Stack;
     }
 
-   
+    public static ProgramStack _store(ProgramStack Stack){
+        Object el = (Object) Stack.getOp().pop();
+        if ((Integer) bc.get("index") >= Stack.getLv().size()){
+            Stack.getLv().push(el);
+        }
+        else{
+            Stack.getLv().insert((Integer) bc.get("index"), el);        
+        }
+        
+        return Stack;
+    }
 
 }

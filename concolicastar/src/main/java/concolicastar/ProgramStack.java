@@ -100,6 +100,10 @@ class Stack {
         return stack.size();
     }
 
+    public void insert(Integer index, Object element) {
+        stack.add(index, element);
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[ ");
