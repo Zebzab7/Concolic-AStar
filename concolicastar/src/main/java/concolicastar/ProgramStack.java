@@ -1,6 +1,8 @@
 package concolicastar;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProgramStack {
     Stack lv;
@@ -50,7 +52,8 @@ public class ProgramStack {
     }
 }
 
-class Stack {
+
+class Stack {    
     private ArrayList<Object> stack = new ArrayList<>();
 
     // Push an item onto the stack
@@ -64,6 +67,15 @@ class Stack {
             throw new IllegalArgumentException("Stack is empty");
         }
         return stack.remove(stack.size() - 1);
+    }
+    public Number popNum(){
+        if(isEmpty()){
+            throw new IllegalArgumentException("Stack is empty");
+        }
+        if(stack.get(stack.size()-1) instanceof Number){
+            return (Number) stack.remove(stack.size()-1);
+        }
+        throw new IllegalArgumentException("Top of stack is not a number");
     }
 
     // Peek at the top item without removing it
@@ -93,3 +105,30 @@ class Stack {
         return sb.toString();
     }
 }
+
+//Type defined and Object not used
+class Element{
+    String type;
+    Object value;
+    public Element(String type, Object value){
+        this.type = type;
+        this.value = value;
+    }
+    public String getType(){
+        return type;
+    }
+    public Object getValue(){
+        return value;
+    }
+    public void setType(String type){
+        this.type = type;
+    }
+    public void setValue(Object value){
+        this.value = value;
+    }
+    public String toString(){
+        return "Type: "+type+" Value: "+value;
+    }
+
+}
+
