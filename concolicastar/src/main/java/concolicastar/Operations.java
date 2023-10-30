@@ -103,4 +103,13 @@ public class Operations {
         return Stack;
     }
 
+    public static ProgramStack _negate(ProgramStack Stack){
+        Element el = (Element) Stack.getOp().pop();
+        int value = (Integer) el.getValue();
+        int res = -value;
+        el.setValue(res);
+        Stack.getOp().push(el);
+        return Stack;
+    }
+
 }
