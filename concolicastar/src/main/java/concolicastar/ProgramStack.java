@@ -41,6 +41,7 @@ public class ProgramStack {
         this.pc = pc;
     }
 
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("lv: " + lv.toString() + "\n");
@@ -127,12 +128,35 @@ class Element{
     public void setType(String type){
         this.type = type;
     }
+    
+
+    public int getInteger(){
+        return (Integer) value;
+    }
+    public Float getFloat(){
+        return (Float) value;
+    }
+    public Boolean getBoolean(){
+        return (Boolean) value;
+    }
+    public Double getDouble(){
+        return (Double) value;
+    }
+    public String getString(){
+        return (String) value;
+    }
+    public Long getLong(){
+        return (Long) value;
+    }
+
+
     public void setValue(Object value){
         this.value = value;
     }
     public String toString(){
         return "Type: "+type+" Value: "+value;
     }
+
 
 }
 
