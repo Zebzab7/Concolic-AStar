@@ -2,7 +2,7 @@ package concolicastar;
 import com.microsoft.z3.*;
 public class ConcolicExecution{
 
-    public static Number doOperation(String opr, Number a,Number b){
+    public static Number doBinary(String opr, Number a,Number b){
         java.lang.reflect.Method method;
         Number v = null;
         try{
@@ -11,7 +11,20 @@ public class ConcolicExecution{
         } catch (Exception e) {
             System.out.println("Error: Method might not exist "+ e);
         }
-      
+        
+        return v;
+    }
+
+     public static Number doCompare(String opr, Number a,Number b){
+        java.lang.reflect.Method method;
+        Number v = null;
+        try{
+            method = ConcolicExecution.class.getDeclaredMethod("_"+opr, Number.class, Number.class);
+            v = (Number)method.invoke(ConcolicExecution.class,a.doubleValue(),b.doubleValue());
+        } catch (Exception e) {
+            System.out.println("Error: Method might not exist "+ e);
+        }
+        
         return v;
     }
    
@@ -59,7 +72,25 @@ public class ConcolicExecution{
         return a.doubleValue() % b.doubleValue();
     }
  
-    
+
+    public static void _gt(){
+
+    }
+    public static void _lt(){
+        
+    }
+    public static void _eq(){
+        
+    }
+    public static void _ge(){
+        
+    }
+    public static void _lz(){
+        
+    }
+    public static void _le(){
+        
+    }
 
 
 
