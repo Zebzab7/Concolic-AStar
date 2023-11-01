@@ -15,12 +15,12 @@ public class ConcolicExecution{
         return v;
     }
 
-     public static Number doCompare(String opr, Number a,Number b){
+     public static boolean doCompare(String opr, Number a,Number b){
         java.lang.reflect.Method method;
-        Number v = null;
+        boolean v = false;
         try{
             method = ConcolicExecution.class.getDeclaredMethod("_"+opr, Number.class, Number.class);
-            v = (Number)method.invoke(ConcolicExecution.class,a.doubleValue(),b.doubleValue());
+            v = (boolean) method.invoke(ConcolicExecution.class,a.doubleValue(),b.doubleValue());
         } catch (Exception e) {
             System.out.println("Error: Method might not exist "+ e);
         }
@@ -32,6 +32,7 @@ public class ConcolicExecution{
         // symAdd(a, b);
         return a.doubleValue() + b.doubleValue();
     }
+
     public static void symAdd(Number a,Number b){
          // Create a Z3 context
         Context ctx = new Context();
@@ -59,42 +60,45 @@ public class ConcolicExecution{
         ctx.close();
     
     }
+
     public static Number _sub(Number a, Number b){
         return a.doubleValue() - b.doubleValue();
     }
+
     public static Number _mul(Number a, Number b){
         return a.doubleValue() * b.doubleValue();
     }
+
     public static Number _div(Number a, Number b){
         return a.doubleValue() / b.doubleValue();
     }
+
     public static Number _mod(Number a, Number b){
         return a.doubleValue() % b.doubleValue();
     }
  
-
-    public static void _gt(){
-
-    }
-    public static void _lt(){
-        
-    }
-    public static void _eq(){
-        
-    }
-    public static void _ge(){
-        
-    }
-    public static void _lz(){
-        
-    }
-    public static void _le(){
-        
+    public static boolean _gt(Number a, Number b){
+        return a.doubleValue() > b.doubleValue();
     }
 
+    public static boolean _lt(Number a, Number b){
+        return a.doubleValue() < b.doubleValue();
+    }
 
+    public static boolean _eq(Number a, Number b){
+        return a.doubleValue() == b.doubleValue();
+    }
 
+    public static boolean _ge(Number a, Number b){
+        return a.doubleValue() >= b.doubleValue();
+    }
 
+    public static boolean _lz(Number a, Number b){
+        return a.doubleValue() <= b.doubleValue();
+    }
 
+    public static boolean _le(Number a, Number b){
+        return a.doubleValue() != b.doubleValue();
+    }
 
 }

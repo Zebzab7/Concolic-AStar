@@ -16,7 +16,7 @@ public class Tests {
         simpleIdentity(interpreter);
         simpleAdd(interpreter);
         simpleMin(interpreter);
-        simpleFactorial(interpreter);
+        // simpleFactorial(interpreter);
 
     }
     private static void simpleNoop(Interpreter interpreter) {

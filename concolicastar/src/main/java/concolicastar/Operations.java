@@ -118,30 +118,55 @@ public class Operations {
         return Stack;
     }
 
-    public static ProgramStack _goto(ProgramStack Stack){
-        return Stack;
-    }
-    public static ProgramStack _if(ProgramStack Stack){
-        Element left = (Element) Stack.getLv().pop();
-        Number left_val= (Number) left.getValue();
-        Element right = (Element) Stack.getLv().pop();
-        Number right_val = (Number) right.getValue();
+    public static ProgramStack _if(ProgramStack stack) {
+        Element el1 = (Element) stack.getOp().pop();
+        Element el2 = (Element) stack.getOp().pop();
+        int target = (Integer) bc.get("target");
+        
+        Number value1 = (Number) el1.getValue();
+        Number value2 = (Number) el2.getValue();
+
         if(bc.get("condition")!= null){
-             String oprString = (String) bc.get("condition");
-             Number res = ConcolicExecution.doCompare(oprString,left_val,right_val);
-            
+            String oprString = (String) bc.get("condition");
+            boolean res = ConcolicExecution.doCompare(oprString, value1, value2);
+            if (res) {
+                stack.setPc(target-1);
+            }                                                                    
+        }
+        return stack;        
+    }
+    
+    public static ProgramStack _ifz(ProgramStack Stack){
+        Element el = (Element) Stack.getOp().pop();
+        int target = (Integer) bc.get("target");
+        
+        Number value = (Number) el.getValue();
+        Number zero = (Number) 0;
+        
+        if(bc.get("condition")!= null){
+            String oprString = (String) bc.get("condition");
+            boolean res = ConcolicExecution.doCompare(oprString, value, zero);
+            if (res) {
+                Stack.setPc(target-1);
+            }                                                                    
         }
         return Stack;
     }
-     public static ProgramStack _ifz(ProgramStack Stack){
-        return Stack;
-    }
-     public static ProgramStack _get(ProgramStack Stack){
-        return Stack;
-    }
-     public static ProgramStack _invoke(ProgramStack Stack){
-        return Stack;
-    }
 
+    public static ProgramStack _goto(ProgramStack Stack){
+        int target = (Integer) bc.get("target");
+        Stack.setPc(target-1);
+        return Stack;
+    }
+    
+    public static ProgramStack _get(ProgramStack Stack){
+        int pc = Stack.getPc();
+        JSONObject field = (JSONObject)bc.get("field");
+        String fieldName = (String)field.get("name");
 
+        return Stack;
+    }
+    public static ProgramStack _invoke(ProgramStack Stack) {
+        return Stack;
+    }
 }
