@@ -22,6 +22,6 @@ public class App
         
         Interpreter interpreter = new Interpreter(files);
         // interpreter.interpret("method");
-        interpreter.interpret(new AbsoluteMethod("Simple", "add"), new Object[] {1, 2});
+        interpreter.interpret(new AbsoluteMethod("Simple", "zero"), new Object[] {1, 2});
     }
 }

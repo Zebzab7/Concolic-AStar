@@ -9,7 +9,6 @@ public class ProgramStack {
     Stack op;
     AbsoluteMethod am;
     int pc;
-    
     public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc) {
         this.lv = lv;
         this.op = op;
@@ -54,6 +53,7 @@ public class ProgramStack {
 
 
 class Stack {    
+    public static Object Element;
     private ArrayList<Object> stack = new ArrayList<>();
 
     // Push an item onto the stack
@@ -68,15 +68,6 @@ class Stack {
         }
         return stack.remove(stack.size() - 1);
     }
-    public Number popNum(){
-        if(isEmpty()){
-            throw new IllegalArgumentException("Stack is empty");
-        }
-        if(stack.get(stack.size()-1) instanceof Number){
-            return (Number) stack.remove(stack.size()-1);
-        }
-        throw new IllegalArgumentException("Top of stack is not a number");
-    }
 
     // Peek at the top item without removing it
     public Object peek() {
@@ -86,6 +77,11 @@ class Stack {
         return stack.get(stack.size() - 1);
     }
 
+    //get specific object in stack
+    public Object getIndexEl(int index){
+        return stack.get(index);
+    }
+
     public boolean isEmpty() {
         return stack.isEmpty();
     }
@@ -93,6 +89,14 @@ class Stack {
     // Return the size of the stack
     public int size() {
         return stack.size();
+    }
+
+    public void insert(Integer index, Object element) {
+        stack.add(index, element);
+    }
+
+    public void replace(Element el, int index) {
+        stack.set(index, el);
     }
 
     public String toString() {

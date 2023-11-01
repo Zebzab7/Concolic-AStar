@@ -15,10 +15,12 @@ public class Operations {
     public static ProgramStack doOperation(ProgramStack stack, String opr){
         java.lang.reflect.Method method;
         try{
+            System.out.println("Operation: "+ opr);
             method = Operations.class.getDeclaredMethod("_"+opr, ProgramStack.class);
             stack = (ProgramStack) method.invoke(Operations.class,stack);
         } catch (Exception e) {
-            System.out.println("Error: Method might not exist "+ e);
+            System.out.println("Error: Method might not exist "+ e + " " + opr);
+            e.printStackTrace();
         }
         return stack;
     }
@@ -31,25 +33,47 @@ public class Operations {
     //     return Stack;
     // }
     public static ProgramStack _load(ProgramStack Stack){
-        System.out.println("Not Implemented yet");;
-        //  Stack.getLv().push();
+        int index = (int) bc.get("index");
+        String type = (String) bc.get("type");
+        //get lv_type and values
+        // ProgramStack ps = new ProgramStack();
+        Element el = new Element(type,Stack.getLv().getIndexEl(index)); 
+        Stack.getLv().push(el);
         return Stack;
     }
 
     public static ProgramStack _push(ProgramStack Stack){
-
-        System.out.println("Not Implemented yet");;
-
+        JSONObject values = (JSONObject) bc.get("value");
+        Object value = (Number) values.get("value");
+        String type = (String) values.get("type");
+        Element el = new Element(type, value);
+        Stack.getLv().push(el);
+        System.out.println(Stack.toString());
         return Stack;
     }
     public static ProgramStack _return(ProgramStack Stack){
-        System.out.println("Not implemented yet");
-        return Stack;
+        // System.out.println("Not implemented yet");
+        if (bc.get("type") == null){
+            System.out.println("(return) None");
+            return Stack;
+        }else if( bc.get("type").equals("int")){
+            System.out.println("(return) int: "+ Stack.getLv().pop());
+            return Stack;
+        }else if(bc.get("type").equals("float")){
+            System.out.println("(return) float: "+ Stack.getLv().pop());
+            return Stack;
+        }else{
+            System.out.println("return type not implemented "+ bc.get("type").toString());
+            return Stack;
+        }
+       
     }
 
     public static ProgramStack _binary(ProgramStack Stack){
-        Number a = Stack.getLv().popNum();
-        Number b = Stack.getLv().popNum();
+        Element ela = (Element) Stack.getLv().pop();
+        Number a = (Number) ela.getValue();
+        Element elb = (Element) Stack.getLv().pop();
+        Number b = (Number) elb.getValue();
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
             Number res = ConcolicExecution.doOperation(oprString,a,b);
@@ -64,6 +88,33 @@ public class Operations {
         return Stack;
     }
 
-   
+    public static ProgramStack _store(ProgramStack Stack){
+        Object el = (Object) Stack.getOp().pop();
+        if ((Integer) bc.get("index") >= Stack.getLv().size()){
+            Stack.getLv().push(el);
+        }
+        else{
+            Stack.getLv().insert((Integer) bc.get("index"), el);        
+        }
+        return Stack;
+    }
+
+    public static ProgramStack _incr(ProgramStack Stack){
+        Element el = (Element) Stack.getLv().getIndexEl((Integer) bc.get("index"));
+        int value = (Integer) el.getValue();
+        int res = value + (Integer) bc.get("amount");
+        el.setValue(res);
+        Stack.getLv().replace(el, (Integer) bc.get("index"));
+        return Stack;
+    }
+
+    public static ProgramStack _negate(ProgramStack Stack){
+        Element el = (Element) Stack.getOp().pop();
+        int value = (Integer) el.getValue();
+        int res = -value;
+        el.setValue(res);
+        Stack.getOp().push(el);
+        return Stack;
+    }
 
 }
