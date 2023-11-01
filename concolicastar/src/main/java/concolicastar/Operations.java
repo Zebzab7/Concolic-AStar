@@ -76,7 +76,7 @@ public class Operations {
         Number b = (Number) elb.getValue();
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
-            Number res = ConcolicExecution.doOperation(oprString,a,b);
+            Number res = ConcolicExecution.doBinary(oprString,a,b);
             
             System.out.println("Concolic Execution with Concrete Input:");
             System.out.println("Concrete Input: " + a +","+b);
@@ -117,5 +117,31 @@ public class Operations {
         Stack.getOp().push(el);
         return Stack;
     }
+
+    public static ProgramStack _goto(ProgramStack Stack){
+        return Stack;
+    }
+    public static ProgramStack _if(ProgramStack Stack){
+        Element left = (Element) Stack.getLv().pop();
+        Number left_val= (Number) left.getValue();
+        Element right = (Element) Stack.getLv().pop();
+        Number right_val = (Number) right.getValue();
+        if(bc.get("condition")!= null){
+             String oprString = (String) bc.get("condition");
+             Number res = ConcolicExecution.doCompare(oprString,left_val,right_val);
+            
+        }
+        return Stack;
+    }
+     public static ProgramStack _ifz(ProgramStack Stack){
+        return Stack;
+    }
+     public static ProgramStack _get(ProgramStack Stack){
+        return Stack;
+    }
+     public static ProgramStack _invoke(ProgramStack Stack){
+        return Stack;
+    }
+
 
 }
