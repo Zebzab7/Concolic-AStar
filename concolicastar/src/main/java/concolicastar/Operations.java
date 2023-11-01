@@ -33,11 +33,11 @@ public class Operations {
     //     return Stack;
     // }
     public static ProgramStack _load(ProgramStack Stack){
-        int index = (int) bc.get("index");
+        Number index =  (Number) bc.get("index");
         String type = (String) bc.get("type");
         //get lv_type and values
         // ProgramStack ps = new ProgramStack();
-        Element el = new Element(type,Stack.getLv().getIndexEl(index)); 
+        Element el = new Element(type,Stack.getLv().getIndexEl(index.intValue())); 
         Stack.getLv().push(el);
         return Stack;
     }
@@ -77,6 +77,7 @@ public class Operations {
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
             Number res = ConcolicExecution.doOperation(oprString,a,b);
+            
             System.out.println("Concolic Execution with Concrete Input:");
             System.out.println("Concrete Input: " + a +","+b);
             System.out.println("Concrete Result: " + res);

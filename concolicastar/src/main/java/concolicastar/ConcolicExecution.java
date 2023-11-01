@@ -1,6 +1,4 @@
 package concolicastar;
-import org.omg.CORBA.Context;
-
 import com.microsoft.z3.*;
 public class ConcolicExecution{
 
@@ -16,16 +14,37 @@ public class ConcolicExecution{
       
         return v;
     }
-    //  // Create a Z3 context
-    //  Context ctx = new Context();
-    //  // Create integer variables
-    //  IntExpr x = ctx.mkIntConst("x");
-    //  IntExpr y = ctx.mkIntConst("y");
    
-    public static Number _add(Number a,Number b){
-        //concrete inputs
-        //symbolic inputs
+    public static Number _add(Number a,Number b){ 
+        // symAdd(a, b);
         return a.doubleValue() + b.doubleValue();
+    }
+    public static void symAdd(Number a,Number b){
+         // Create a Z3 context
+        Context ctx = new Context();
+        // Create variables
+        Expr x = ctx.mkConst("x",ctx.mkUninterpretedSort("UnknownType"));
+        Expr y = ctx.mkConst("y",ctx.mkUninterpretedSort("UnknownType"));
+        //  Perform the addition
+        Expr resAdd = ctx.mkAdd(x,y);
+
+        //  create a solver
+        Solver solver = ctx.mkSolver();
+        solver.add(ctx.mkEq(resAdd,ctx.mkInt(a.intValue()+b.intValue())));
+        
+        // Check for satisfiability (optional)
+        Status status = solver.check();
+
+        if (status == Status.SATISFIABLE) {
+            // Get the result of a + b
+            System.out.println("Result of a + b: " + solver.getModel().evaluate(resAdd, false));
+        } else {
+            System.out.println("No satisfying assignment.");
+        }
+
+        // Dispose of the context to free up resources
+        ctx.close();
+    
     }
     public static Number _sub(Number a, Number b){
         return a.doubleValue() - b.doubleValue();
