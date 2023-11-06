@@ -144,7 +144,7 @@ public class Operations {
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, value1, value2);
             if (res) {
-                stack.setPc(target.intValue()-1);
+                stack.setPc(target-1);
             }                                                                    
         }
         return stack;        
@@ -184,10 +184,23 @@ public class Operations {
         String typeName = (String) fieldType.get("name");
         String typeKind = (String) fieldType.get("kind");
         Element el  = new Element(typeKind, typeName);
-        Stack.getLv().push(el);
+        Stack.getOp().push(el);
         return Stack;
     }
     public static ProgramStack _invoke(ProgramStack Stack) {
+        String access = (String) bc.get("access");
+        switch (access) {
+            case "static":
+                
+                break;
+            case "virtual":
+                break;
+            case "special":
+                break;
+
+            default:
+                throw new IllegalArgumentException("Not implemented yet");
+        }
         return Stack;
     }
     public static ProgramStack _dup(ProgramStack Stack) {
