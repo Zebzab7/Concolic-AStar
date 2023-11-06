@@ -1,5 +1,7 @@
 package concolicastar;
 
+import static org.junit.Assert.assertTrue;
+
 public class Tests {
     
     public static void testList(Interpreter interpreter){
@@ -16,39 +18,66 @@ public class Tests {
         simpleIdentity(interpreter);
         simpleAdd(interpreter);
         simpleMin(interpreter);
-        // simpleFactorial(interpreter);
-
+        simpleFactorial(interpreter);
     }
     private static void simpleNoop(Interpreter interpreter) {
-        System.out.println("Testing noop");
-        interpreter.interpret(new AbsoluteMethod("Simple", "noop"), new Object[] {});
+        System.out.println("\nTesting noop");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "noop"), new Element[] {});
+        assertTrue(res.getLv().size() == 0);
+        assertTrue(res.getOp().size() == 0);
     }
     private static void simpleZero(Interpreter interpreter) {
-        System.out.println("Testing zero");
-        interpreter.interpret(new AbsoluteMethod("Simple", "zero"), new Object[] {});
-        
+        System.out.println("\nTesting zero");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "zero"), new Element[] {});
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        assertTrue(num.intValue() == 0);
     }
     private static void simpleHundredAndTwo(Interpreter interpreter) {
-        System.out.println("Testing hundredAndTwo");
-        interpreter.interpret(new AbsoluteMethod("Simple", "hundredAndTwo"), new Object[] {});
+        System.out.println("\nTesting hundredAndTwo");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "hundredAndTwo"), new Element[] {});
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        assertTrue(num.intValue() == 102);
     }
     private static void simpleIdentity(Interpreter interpreter) {
-        System.out.println("Testing identity");
-        interpreter.interpret(new AbsoluteMethod("Simple", "identity"), new Object[] {1});
+        System.out.println("\nTesting identity");
+        ProgramStack res =interpreter.interpret(new AbsoluteMethod("Simple", "identity"),
+            new Element[] {new Element("int", 27)});
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        assertTrue(num.intValue() == 27);
     }
     private static void simpleAdd(Interpreter interpreter) {
-        System.out.println("Testing add");
-        interpreter.interpret(new AbsoluteMethod("Simple", "add"), new Object[] {1, 2});
+        System.out.println("\nTesting add");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "add"), 
+            new Element[] {new Element("int", 1), new Element("int", 2)});
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        assertTrue(num.intValue() == 3);
     }
     private static void simpleMin(Interpreter interpreter) {
-        System.out.println("Testing min");
-        interpreter.interpret(new AbsoluteMethod("Simple", "min"), new Object[] {1, 2});
+        System.out.println("\nTesting min");
+        int a = 5;
+        int b = 10;
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "min"), 
+            new Element[] {new Element("int", a), new Element("int", b)});
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        if (a <= b) {
+            assertTrue(num.intValue() == a);
+        } else {
+            assertTrue(num.intValue() == b);
+        }
     }
     private static void simpleFactorial(Interpreter interpreter) {
-        System.out.println("Testing factorial");
-        interpreter.interpret(new AbsoluteMethod("Simple", "factorial"), new Object[] {4});
+        System.out.println("\nTesting factorial");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "factorial"), 
+            new Element[] {new Element("int", 6)});
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        
+        System.out.println(res);
+        assertTrue(num.intValue() == 720);
     }
-
-
-
 }

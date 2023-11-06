@@ -32,88 +32,94 @@ public class Operations {
     //     Stack.getLv().push(a.doubleValue() + b.doubleValue());
     //     return Stack;
     // }
-    public static ProgramStack _load(ProgramStack Stack){
-        Number index =  (Number) bc.get("index");
+    public static ProgramStack _load(ProgramStack stack){
+        Number index = (Number) bc.get("index");
         String type = (String) bc.get("type");
         if(type.equals("ref")){
             throw new IllegalArgumentException("Not implemented yet");
+        } else {
+            Element el = stack.getLv().get(index.intValue());
+            stack.getOp().push(el);
         }
-        //get lv_type and values
-        // ProgramStack ps = new ProgramStack();
-        Element el = new Element(type,Stack.getLv().getIndexEl(index.intValue())); 
-        Stack.getLv().push(el);
-        return Stack;
+        return stack;
     }
 
     public static ProgramStack _push(ProgramStack Stack){
         JSONObject values = (JSONObject) bc.get("value");
-        Object value = (Number) values.get("value");
+        Object value = values.get("value");
         String type = (String) values.get("type");
         Element el = new Element(type, value);
-        Stack.getLv().push(el);
-        System.out.println(Stack.toString());
+        Stack.getOp().push(el);
         return Stack;
     }
-    public static ProgramStack _return(ProgramStack Stack){
+    public static ProgramStack _return(ProgramStack stack){
         // System.out.println("Not implemented yet");
         if (bc.get("type") == null){
             System.out.println("(return) None");
-            return Stack;
+            return stack;
         }else if( bc.get("type").equals("int")){
-            System.out.println("(return) int: "+ Stack.getLv().pop());
-            return Stack;
+            System.out.println("(return) int: "+ stack.getOp().peek());
+            return stack;
         }else if(bc.get("type").equals("float")){
-            System.out.println("(return) float: "+ Stack.getLv().pop());
-            return Stack;
+            System.out.println("(return) float: "+ stack.getOp().peek());
+            return stack;
         }else{
             System.out.println("return type not implemented "+ bc.get("type").toString());
-            return Stack;
+            return stack;
         }
        
     }
 
+    // Assumes that stack contains elements of type Number
     public static ProgramStack _binary(ProgramStack Stack){
-        Element ela = (Element) Stack.getLv().pop();
+        Element ela = (Element) Stack.getOp().pop();
         Number a = (Number) ela.getValue();
-        Element elb = (Element) Stack.getLv().pop();
+        Element elb = (Element) Stack.getOp().pop();
         Number b = (Number) elb.getValue();
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
             Number res = ConcolicExecution.doBinary(oprString,a,b);
-            
-            System.out.println("Concolic Execution with Concrete Input:");
-            System.out.println("Concrete Input: " + a +","+b);
-            System.out.println("Concrete Result: " + res);
-            
-            
+            Element el = new Element("Double", res);
+            Stack.getOp().push(el);
         }
+
          // Symbolic execution with a symbolic input
-        Stack.getLv().push(a.doubleValue() + b.doubleValue());
         return Stack;
     }
 
     public static ProgramStack _store(ProgramStack Stack){
-        Object el = (Object) Stack.getOp().pop();
+        Element el = Stack.getOp().pop();
         if(bc.get("type").equals("ref")){
             throw new IllegalArgumentException("Not implemented yet");
         }
-
-        if ((Integer) bc.get("index") >= Stack.getLv().size()){
+        Number index = (Number) bc.get("index");
+        if (index.intValue() >= Stack.getLv().size()){
             Stack.getLv().push(el);
         }
         else{
-            Stack.getLv().insert((Integer) bc.get("index"), el);        
+            Stack.getLv().replace(index.intValue(), el);        
         }
+
         return Stack;
     }
 
-    public static ProgramStack _incr(ProgramStack Stack){
-        Element el = (Element) Stack.getLv().getIndexEl((Integer) bc.get("index"));
-        int value = (Integer) el.getValue();
-        int res = value + (Integer) bc.get("amount");
+    public static ProgramStack _incr(ProgramStack stack){
+        Number numIndex = (Number) bc.get("index");
+        int index = numIndex.intValue();
+        
+        Element el = (Element) stack.getLv().get(index);
+
+        Number value = (Number) el.getValue();
+        Number incrAmount = (Number) bc.get("amount");
+        int res = value.intValue() + incrAmount.intValue();
+        Element elCopy = new Element(el.getType(), el.getValue());
+        stack.getOp().pop();
+        stack.getOp().push(elCopy);
         el.setValue(res);
-        Stack.getLv().replace(el, (Integer) bc.get("index"));
-        return Stack;
+
+        // Stack.getLv().replace(index,)
+        // Stack.setLv();
+        return stack;
     }
 
     public static ProgramStack _negate(ProgramStack Stack){
@@ -126,9 +132,11 @@ public class Operations {
     }
 
     public static ProgramStack _if(ProgramStack stack) {
-        Element el1 = (Element) stack.getOp().pop();
         Element el2 = (Element) stack.getOp().pop();
-        int target = (Integer) bc.get("target");
+        Element el1 = (Element) stack.getOp().pop();
+
+        Number num = (Number) bc.get("target");
+        int target = num.intValue();
         
         Number value1 = (Number) el1.getValue();
         Number value2 = (Number) el2.getValue();
@@ -145,8 +153,10 @@ public class Operations {
     
     public static ProgramStack _ifz(ProgramStack Stack){
         Element el = (Element) Stack.getOp().pop();
-        int target = (Integer) bc.get("target");
-        
+
+        Number num = (Number) bc.get("target");
+        int target = num.intValue();
+
         Number value = (Number) el.getValue();
         Number zero = (Number) 0;
         
@@ -161,7 +171,8 @@ public class Operations {
     }
 
     public static ProgramStack _goto(ProgramStack Stack){
-        int target = (Integer) bc.get("target");
+        Number numIndex = (Number) bc.get("target");
+        int target = numIndex.intValue();
         Stack.setPc(target-1);
         return Stack;
     }
@@ -256,7 +267,7 @@ public class Operations {
         switch(dim){
             case 1:
                 int[] arr1 = (int[]) arr.getValue();
-                Stack.getLv().push(new Element("int", arr1[indexValue]));
+                Stack.getOp().push(new Element("int", arr1[indexValue]));
                 break;
             default:
                 throw new IllegalArgumentException("Not implemented yet");
