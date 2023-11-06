@@ -35,6 +35,9 @@ public class Operations {
     public static ProgramStack _load(ProgramStack Stack){
         Number index =  (Number) bc.get("index");
         String type = (String) bc.get("type");
+        if(type.equals("ref")){
+            throw new IllegalArgumentException("Not implemented yet");
+        }
         //get lv_type and values
         // ProgramStack ps = new ProgramStack();
         Element el = new Element(type,Stack.getLv().getIndexEl(index.intValue())); 
@@ -91,6 +94,10 @@ public class Operations {
 
     public static ProgramStack _store(ProgramStack Stack){
         Object el = (Object) Stack.getOp().pop();
+        if(bc.get("type").equals("ref")){
+            throw new IllegalArgumentException("Not implemented yet");
+        }
+
         if ((Integer) bc.get("index") >= Stack.getLv().size()){
             Stack.getLv().push(el);
         }
@@ -167,6 +174,93 @@ public class Operations {
         return Stack;
     }
     public static ProgramStack _invoke(ProgramStack Stack) {
+        return Stack;
+    }
+    public static ProgramStack _dup(ProgramStack Stack) {
+        Element el = (Element) Stack.getLv().pop();
+        int num = (int) bc.get("words");
+        if(num!=1){
+            //If num is 2 or greater look at the bytecode, not sure how to handle
+            throw new IllegalArgumentException("Not implemented yet");
+        }
+        Stack.getLv().push(el);
+        Stack.getLv().push(el);
+        return Stack;
+    }
+    public static ProgramStack _newarray(ProgramStack Stack) {
+        //Get's pushed value's from stack to get size of array
+        int[] arr = new int[10];
+        int dimension = (int) bc.get("dim");
+        String arrayType = ""+dimension;
+        for(int i = 0; i<dimension; i++){
+            Element e = (Element) Stack.getOp().pop();
+            arr[i] = (int) e.getValue();
+            //Stores counts for usage in other functions
+            arrayType += " " + arr[i];
+        }
+        
+        
+        String type = (String) bc.get("type");
+        if(!type.equals("int")){
+            throw new IllegalArgumentException("Not implemented yet");
+        }
+    
+        switch(dimension){
+            case 1:
+                Stack.getLv().push(new Element(arrayType, new int[arr[0]]));
+                break;
+            case 2:
+                Stack.getLv().push(new Element (arrayType,new int[arr[0]][arr[1]]));
+                break;
+            case 3: 
+                Stack.getLv().push(new Element (arrayType,new int[arr[0]][arr[1]][arr[2]]));
+                break;
+            default:
+                throw new IllegalArgumentException("Not implemented yet");
+        }
+        return Stack;
+    }
+    public static ProgramStack _array_store(ProgramStack Stack) {
+        Element e = (Element) Stack.getOp().pop();
+        Element array = (Element) Stack.getLv().pop();
+        String type = (String)bc.get("type");
+        if(!type.equals("int")){
+            throw new IllegalArgumentException("Not implemented yet");
+        }
+
+        int dim = Integer.parseInt(array.getType().split(" ")[0]);
+
+        Element index = (Element) Stack.getOp().pop();
+        //Array index, if multiple dimensions, figure out what happens?
+        int indexValue = (int) index.getValue(); 
+
+        switch(dim){
+            case 1:
+                int[] arr = (int[]) array.getValue();
+                int value = (int) e.getValue();
+                arr[indexValue] = value;
+                break;
+            default:
+                throw new IllegalArgumentException("Not implemented yet");
+        }
+
+        return Stack;
+    }
+    public static ProgramStack _array_load(ProgramStack Stack){
+        Element arr = (Element) Stack.getLv().pop();
+        Element index = (Element) Stack.getOp().pop();
+        int indexValue = (int) index.getValue();
+        
+        String type = arr.getType();
+        int dim = Integer.parseInt(type.split(" ")[0]);
+        switch(dim){
+            case 1:
+                int[] arr1 = (int[]) arr.getValue();
+                Stack.getLv().push(new Element("int", arr1[indexValue]));
+                break;
+            default:
+                throw new IllegalArgumentException("Not implemented yet");
+        }
         return Stack;
     }
 }
