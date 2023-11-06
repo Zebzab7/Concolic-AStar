@@ -19,6 +19,7 @@ public class Operations {
             method = Operations.class.getDeclaredMethod("_"+opr, ProgramStack.class);
             stack = (ProgramStack) method.invoke(Operations.class,stack);
         } catch (Exception e) {
+
             System.out.println("Error: Method might not exist "+ e + " " + opr);
             e.printStackTrace();
         }
@@ -126,9 +127,10 @@ public class Operations {
     }
 
     public static ProgramStack _if(ProgramStack stack) {
-        Element el1 = (Element) stack.getOp().pop();
-        Element el2 = (Element) stack.getOp().pop();
-        int target = (Integer) bc.get("target");
+
+        Element el1 = (Element) stack.getLv().pop();
+        Element el2 = (Element) stack.getLv().pop();
+        Number target = (Number) bc.get("target");
         
         Number value1 = (Number) el1.getValue();
         Number value2 = (Number) el2.getValue();
@@ -137,7 +139,7 @@ public class Operations {
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, value1, value2);
             if (res) {
-                stack.setPc(target-1);
+                stack.setPc(target.intValue()-1);
             }                                                                    
         }
         return stack;        
@@ -170,7 +172,11 @@ public class Operations {
         int pc = Stack.getPc();
         JSONObject field = (JSONObject)bc.get("field");
         String fieldName = (String)field.get("name");
-
+        JSONObject fieldType = (JSONObject) bc.get("type");
+        String typeName = (String) fieldType.get("name");
+        String typeKind = (String) fieldType.get("kind");
+        Element el  = new Element(typeKind, typeName);
+        Stack.getLv().push(el);
         return Stack;
     }
     public static ProgramStack _invoke(ProgramStack Stack) {
