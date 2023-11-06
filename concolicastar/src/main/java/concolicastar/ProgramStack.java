@@ -52,67 +52,8 @@ public class ProgramStack {
     }
 }
 
-
-class Stack {    
-    public static Object Element;
-    private ArrayList<Object> stack = new ArrayList<>();
-
-    // Push an item onto the stack
-    public void push(Object item) {
-        stack.add(item);
-    }
-
-    // Pop an item from the top of the stack
-    public Object pop() {
-        if (isEmpty()) {
-            throw new IllegalArgumentException("Stack is empty");
-        }
-        return stack.remove(stack.size() - 1);
-    }
-
-    // Peek at the top item without removing it
-    public Object peek() {
-        if (isEmpty()) {
-            throw new IllegalArgumentException("Stack is empty");
-        }
-        return stack.get(stack.size() - 1);
-    }
-
-    //get specific object in stack
-    public Object getIndexEl(int index){
-        return stack.get(index);
-    }
-
-    public boolean isEmpty() {
-        return stack.isEmpty();
-    }
-
-    // Return the size of the stack
-    public int size() {
-        return stack.size();
-    }
-
-    public void insert(Integer index, Object element) {
-        stack.add(index, element);
-    }
-
-    public void replace(Element el, int index) {
-        stack.set(index, el);
-    }
-
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[ ");
-        for (Object object : stack) {
-            sb.append(object.toString() + ", ");
-        }
-        sb.append("]");
-        return sb.toString();
-    }
-}
-
 //Type defined and Object not used
-class Element{
+class Element {
     String type;
     Object value;
     public Element(String type, Object value){
@@ -128,35 +69,71 @@ class Element{
     public void setType(String type){
         this.type = type;
     }
-    
-
-    public int getInteger(){
-        return (Integer) value;
-    }
-    public Float getFloat(){
-        return (Float) value;
-    }
-    public Boolean getBoolean(){
-        return (Boolean) value;
-    }
-    public Double getDouble(){
-        return (Double) value;
-    }
-    public String getString(){
-        return (String) value;
-    }
-    public Long getLong(){
-        return (Long) value;
-    }
-
-
     public void setValue(Object value){
         this.value = value;
     }
     public String toString(){
         return "Type: "+type+" Value: "+value;
     }
-
-
 }
+
+
+class Stack {
+    public Element element;
+    private ArrayList<Element> stack = new ArrayList<>();
+
+    // Push an item onto the stack
+    public void push(Element item) {
+        stack.add(item);
+    }
+
+    // Pop an item from the top of the stack
+    public Element pop() {
+        if (isEmpty()) {
+            throw new IllegalArgumentException("Stack is empty");
+        }
+        return stack.remove(stack.size() - 1);
+    }
+
+    // Peek at the top item without removing it
+    public Element peek() {
+        if (isEmpty()) {
+            throw new IllegalArgumentException("Stack is empty");
+        }
+        return stack.get(stack.size() - 1);
+    }
+
+    //get specific Element in stack
+    public Element get(int index){
+        return stack.get(index);
+    }
+
+    public boolean isEmpty() {
+        return stack.isEmpty();
+    }
+
+    // Return the size of the stack
+    public int size() {
+        return stack.size();
+    }
+
+    public void insert(Integer index, Element element) {
+        stack.add(index, element);
+    }
+
+    public void replace(int index, Element el) {
+        stack.set(index, el);
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[ ");
+        for (Element element : stack) {
+            sb.append(element.toString() + ", ");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+}
+
 

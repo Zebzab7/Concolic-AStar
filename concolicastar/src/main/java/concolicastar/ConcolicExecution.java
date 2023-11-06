@@ -19,6 +19,7 @@ public class ConcolicExecution{
         java.lang.reflect.Method method;
         boolean v = false;
         try{
+            System.out.println("Operation2: "+ opr);
             method = ConcolicExecution.class.getDeclaredMethod("_"+opr, Number.class, Number.class);
             v = (boolean) method.invoke(ConcolicExecution.class,a.doubleValue(),b.doubleValue());
         } catch (Exception e) {
@@ -28,13 +29,9 @@ public class ConcolicExecution{
         return v;
     }
    
-    public static Number _add(Number a,Number b){ 
-        // symAdd(a, b);
-        return a.doubleValue() + b.doubleValue();
-    }
-
+    
     public static void symAdd(Number a,Number b){
-         // Create a Z3 context
+        // Create a Z3 context
         Context ctx = new Context();
         // Create variables
         Expr x = ctx.mkConst("x",ctx.mkUninterpretedSort("UnknownType"));
@@ -55,12 +52,16 @@ public class ConcolicExecution{
         } else {
             System.out.println("No satisfying assignment.");
         }
-
+        
         // Dispose of the context to free up resources
         ctx.close();
-    
+        
     }
-
+    
+    public static Number _add(Number a,Number b){ 
+        // symAdd(a, b);
+        return a.doubleValue() + b.doubleValue();
+    }
     public static Number _sub(Number a, Number b){
         return a.doubleValue() - b.doubleValue();
     }
@@ -78,6 +79,7 @@ public class ConcolicExecution{
     }
  
     public static boolean _gt(Number a, Number b){
+        System.out.println("gt: "+ a.doubleValue() + " " + b.doubleValue());
         return a.doubleValue() > b.doubleValue();
     }
 
@@ -98,7 +100,7 @@ public class ConcolicExecution{
     }
 
     public static boolean _le(Number a, Number b){
-        return a.doubleValue() != b.doubleValue();
+        return a.doubleValue() <= b.doubleValue();
     }
 
 }
