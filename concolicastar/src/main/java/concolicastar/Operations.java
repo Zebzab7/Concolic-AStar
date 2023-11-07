@@ -133,9 +133,9 @@ public class Operations {
     }
 
     public static ProgramStack _if(ProgramStack stack) {
-        Element el1 = (Element) stack.getOp().pop();
         Element el2 = (Element) stack.getOp().pop();
-        int target = (Integer) bc.get("target");
+        Element el1 = (Element) stack.getOp().pop();
+        Number target = (Number) bc.get("target");
         
         Number value1 = (Number) el1.getValue();
         Number value2 = (Number) el2.getValue();
@@ -144,7 +144,7 @@ public class Operations {
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, value1, value2);
             if (res) {
-                stack.setPc(target-1);
+                stack.setPc(target.intValue()-1);
             }                                                                    
         }
         return stack;        
