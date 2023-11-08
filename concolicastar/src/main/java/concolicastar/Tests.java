@@ -6,10 +6,29 @@ public class Tests {
     
     public static void testList(Interpreter interpreter){
         System.out.println("Starting tests!!!");
-        testSimple(interpreter);
-
+        //testSimple(interpreter);
+        testCalls(interpreter);
         System.out.println("Tests done :O");
     }
+    public static void testCalls(Interpreter interpreter){
+        System.out.println("Testing calls");
+        callsHelloWorld(interpreter);
+        callsFib(interpreter);
+    }
+    private static void callsHelloWorld(Interpreter interpreter){
+        System.out.println("\nTesting helloWorld");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Calls", "helloWorld"), new Element[] {});
+        assertTrue(res.getLv().size() == 0);
+        assertTrue(res.getOp().size() == 0);
+    }
+    private static void callsFib(Interpreter interpreter){
+        System.out.println("\nTesting fib");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Calls", "fib"), new Element[] {new Element("int", 5)});
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        assertTrue(num.intValue() == 8);
+    }
+
     private static void testSimple(Interpreter interpreter) {
         System.out.println("Testing simple");
         simpleNoop(interpreter);

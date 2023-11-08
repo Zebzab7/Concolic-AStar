@@ -192,12 +192,13 @@ public class Operations {
         return Stack;
     }
     public static ProgramStack _invoke(ProgramStack Stack) {
-        JSONObject method = (JSONObject) bc.get("method");
-        JSONObject ref = (JSONObject) method.get("ref");
-        String className = (String) ref.get("name");
-        String methodName = (String) method.get("name");
-        AbsoluteMethod am = new AbsoluteMethod(className,methodName);
-        String access = (String) bc.get("access");
+        JSONObject method = (JSONObject) bc.get("method"); //ref, name, args, returns
+        JSONObject ref = (JSONObject) method.get("ref"); // kind, name
+        String className = (String) ref.get("name"); // fullpath name
+        String methodName = (String) method.get("name"); // name of invoking method
+        AbsoluteMethod am = new AbsoluteMethod(className,methodName); //finds method
+        System.out.println("Invoking: "+ am.toString());
+        String access = (String) bc.get("access"); //static, virtual, special, dynamic
         String[] args_type =null;
         Element[] argElments = null;
         switch (access) {
