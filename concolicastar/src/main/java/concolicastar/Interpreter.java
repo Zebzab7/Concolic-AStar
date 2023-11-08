@@ -7,7 +7,7 @@ import org.json.simple.JSONObject;
 
 public class Interpreter {
 
-    ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
+    static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     
     public Interpreter(ArrayList<JsonFile> files) {
         for(JsonFile file : files) {
@@ -22,7 +22,7 @@ public class Interpreter {
         }
     }
 
-    public ProgramStack interpret(AbsoluteMethod am, Element[] args) {
+    public static ProgramStack interpret(AbsoluteMethod am, Element[] args) {
         if (args == null) {
             args = new Element[0];
         }
@@ -47,7 +47,7 @@ public class Interpreter {
         return stack;
     }
 
-    public Bytecode findMethod(AbsoluteMethod am) {
+    public static Bytecode findMethod(AbsoluteMethod am) {
         for (Bytecode bytecode : bytecodes) {
             if (bytecode.getAm().equals(am)) {
                 return bytecode;

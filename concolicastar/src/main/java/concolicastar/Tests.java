@@ -19,6 +19,7 @@ public class Tests {
         simpleAdd(interpreter);
         simpleMin(interpreter);
         simpleFactorial(interpreter);
+        simpleMain(interpreter);
     }
     private static void simpleNoop(Interpreter interpreter) {
         System.out.println("\nTesting noop");
@@ -79,5 +80,18 @@ public class Tests {
         
         System.out.println(res);
         assertTrue(num.intValue() == 720);
+    }
+
+    private static void simpleMain(Interpreter interpreter){
+        System.out.println("\nTesting main");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "main"), 
+            new Element[] {new Element("int", 3.0), new Element("int", 4)});
+        
+
+        System.out.println(res);
+        // assertTrue();
+
+        
+
     }
 }

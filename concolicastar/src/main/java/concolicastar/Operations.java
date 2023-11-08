@@ -1,5 +1,9 @@
 package concolicastar;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class Operations {
@@ -179,8 +183,8 @@ public class Operations {
     public static ProgramStack _get(ProgramStack Stack){
         int pc = Stack.getPc();
         JSONObject field = (JSONObject)bc.get("field");
-        String fieldName = (String)field.get("name");
-        JSONObject fieldType = (JSONObject) bc.get("type");
+        // String fieldName = (String)field.get("name");
+        JSONObject fieldType = (JSONObject) field.get("type");
         String typeName = (String) fieldType.get("name");
         String typeKind = (String) fieldType.get("kind");
         Element el  = new Element(typeKind, typeName);
@@ -189,15 +193,49 @@ public class Operations {
     }
     public static ProgramStack _invoke(ProgramStack Stack) {
         String access = (String) bc.get("access");
+        String[] args_type =null;
+        Element[] argElments = null;
+        if (bc.get("args")!=null) {
+            JSONArray args = (JSONArray) bc.get("args");
+            args_type = new String[args.size()];
+            argElments = new Element[args.size()];
+            for (int i = args.size()-1; i>0 ; i++) {
+                for (int j = 0; j < args.size(); j++) {
+                    argElments[j] = new Element(args_type[i], Stack.getLv().pop().getValue());
+                }
+            }
+        }
+        JSONObject method = (JSONObject) bc.get("method");
+        String methodName = (String) method.get("name");
+        AbsoluteMethod am = new AbsoluteMethod(Stack.getAm().getClassName(),methodName);
         switch (access) {
             case "static":
-                
+                    ProgramStack newStack =Interpreter.interpret(am,argElments);
+                    if (newStack != null) {
+                        Stack = newStack;
+                    }else{
+                        return null;
+                    }
                 break;
             case "virtual":
+                    ProgramStack newStack1 =Interpreter.interpret(am,argElments);
+                    if (newStack1 != null) {
+                        Stack = newStack1;
+                    }else{
+                        return null;
+                    }
                 break;
             case "special":
+                    if (methodName.equals("<init>")) {
+                        Element initEl = new Element("<init>", null);
+                        Stack.getOp().push(initEl);
+                    }else{
+                        throw new IllegalArgumentException("Invoke type not supported"+ access);
+                    }
                 break;
+            // case "dynamic":
 
+            //     break;
             default:
                 throw new IllegalArgumentException("Not implemented yet");
         }
