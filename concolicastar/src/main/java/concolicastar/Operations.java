@@ -213,16 +213,12 @@ public class Operations {
                     ProgramStack newStack =Interpreter.interpret(am,argElments);
                     if (newStack != null) {
                         Stack = newStack;
-                    }else{
-                        return null;
                     }
                 break;
             case "virtual":
                     ProgramStack newStack1 =Interpreter.interpret(am,argElments);
                     if (newStack1 != null) {
                         Stack = newStack1;
-                    }else{
-                        return null;
                     }
                 break;
             case "special":
