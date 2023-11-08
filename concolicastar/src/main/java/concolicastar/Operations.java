@@ -193,28 +193,32 @@ public class Operations {
     }
     public static ProgramStack _invoke(ProgramStack Stack) {
         JSONObject method = (JSONObject) bc.get("method");
+        JSONObject ref = (JSONObject) method.get("ref");
+        String className = (String) ref.get("name");
         String methodName = (String) method.get("name");
-        AbsoluteMethod am = new AbsoluteMethod(Stack.getAm().getClassName(),methodName);
+        AbsoluteMethod am = new AbsoluteMethod(className,methodName);
         String access = (String) bc.get("access");
         String[] args_type =null;
         Element[] argElments = null;
-        if (method.get("args")!=null) {
-            JSONArray args = (JSONArray) method.get("args");
-            args_type = new String[args.size()];
-            argElments = new Element[args.size()];
-            for (int i = args.size()-1; i>=0 ; i++) {
-                for (int j = 0; j < args.size(); j++) {
-                    argElments[j] = new Element(args_type[i], Stack.getLv().pop().getValue());
-                }
-            }
-        }
         switch (access) {
             case "static":
-            case "virtual":
-                    ProgramStack newStack1 =Interpreter.interpret(am,argElments);
-                    if (newStack1 != null) {
-                        Stack = newStack1;
+                if (method.get("args")!=null) {
+                    JSONArray args = (JSONArray) method.get("args");
+                    args_type = new String[args.size()];
+                    argElments = new Element[args.size()];
+                    for (int i = args.size()-1; i>=0 ; i++) {
+                        for (int j = 0; j < args.size(); j++) {
+                            argElments[j] = new Element(args_type[i], Stack.getLv().pop().getValue());
+                        }
                     }
+                }
+                ProgramStack newStack1 =Interpreter.interpret(am,argElments);
+                        if (newStack1 != null) {
+                            Stack = newStack1;
+                        }
+                break;
+            case "virtual":
+                
                 break;
             case "special":
                     if (methodName.equals("<init>")) {
