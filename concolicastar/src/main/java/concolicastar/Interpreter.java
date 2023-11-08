@@ -8,7 +8,7 @@ import org.json.simple.JSONObject;
 public class Interpreter {
 
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
-    
+    static BootstrapMethods bootstrapMethods;
     public Interpreter(ArrayList<JsonFile> files) {
         for(JsonFile file : files) {
             JSONArray methods = file.getMethods();
@@ -17,7 +17,9 @@ public class Interpreter {
                 String methodName = (String) method.get("name");
                 JSONObject code = (JSONObject) method.get("code");
                 Bytecode bc = new Bytecode(file.getFileName(), methodName , (JSONArray) code.get("bytecode"));
+                BootstrapMethods bm = new BootstrapMethods(file.getFileName(), methodName, (JSONArray) method.get("bootstrapMethods"));
                 bytecodes.add(bc);
+                bootstrapMethods = bm;
             }
         }
     }
@@ -36,7 +38,7 @@ public class Interpreter {
             JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
             String oprString = (String) bytecode.get("opr");
             
-            Operations op = new Operations(bytecode);
+            Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods());
             stack = Operations.doOperation(stack, oprString);
             if (oprString.equals("return")) {
                 return stack;

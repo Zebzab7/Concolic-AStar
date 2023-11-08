@@ -1,5 +1,7 @@
 package concolicastar;
 
+import org.json.simple.JSONObject;
+
 public class AbsoluteMethod {
     public String className;
     public String methodName;

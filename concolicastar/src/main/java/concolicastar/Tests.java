@@ -6,10 +6,31 @@ public class Tests {
     
     public static void testList(Interpreter interpreter){
         System.out.println("Starting tests!!!");
-        testSimple(interpreter);
-
+        //testSimple(interpreter);
+        testCalls(interpreter);
         System.out.println("Tests done :O");
     }
+    private static void testCalls(Interpreter interpreter) {
+        System.out.println("Testing calls");
+        //testHelloWorld(interpreter);
+        testFibonacci(interpreter);
+    }
+    private static void testHelloWorld(Interpreter interpreter){
+        System.out.println("\nTesting helloWorld");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Calls", "helloWorld"), new Element[] {});
+        System.out.println(res);
+        assertTrue(res.getOp().size() == 0);
+        assertTrue(res.getLv().size() == 0);
+    }
+    private static void testFibonacci(Interpreter interpreter){
+        System.out.println("\nTesting fibonacci");
+        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Calls", "fib"), new Element[] {new Element("int", 10)});
+        System.out.println(res);
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        assertTrue(num.intValue() == 89);
+    }
+
     private static void testSimple(Interpreter interpreter) {
         System.out.println("Testing simple");
         simpleNoop(interpreter);
@@ -85,7 +106,7 @@ public class Tests {
     private static void simpleMain(Interpreter interpreter){
         System.out.println("\nTesting main");
         ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "main"), 
-            new Element[] {new Element("int", 3.0), new Element("int", 4)});
+            new Element[] {new Element("int", 1), new Element("int", 1)});
         
 
         System.out.println(res);

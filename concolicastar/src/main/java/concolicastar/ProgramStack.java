@@ -40,7 +40,11 @@ public class ProgramStack {
     public void setPc(int pc) {
         this.pc = pc;
     }
-
+    public ProgramStack setLvAOp(ProgramStack stack){
+        this.lv = stack.getLv();
+        this.op = stack.getOp();
+        return stack;
+    }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
