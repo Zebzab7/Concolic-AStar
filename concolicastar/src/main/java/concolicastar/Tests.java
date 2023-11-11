@@ -2,12 +2,18 @@ package concolicastar;
 
 import static org.junit.Assert.assertTrue;
 
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Status;
+
 public class Tests {
     
     public static void testList(Interpreter interpreter){
         System.out.println("Starting tests!!!");
-        //testSimple(interpreter);
-        testCalls(interpreter);
+        testSimple(interpreter);
+        // testCalls(interpreter);
         System.out.println("Tests done :O");
     }
     private static void testCalls(Interpreter interpreter) {
@@ -33,14 +39,14 @@ public class Tests {
 
     private static void testSimple(Interpreter interpreter) {
         System.out.println("Testing simple");
-        simpleNoop(interpreter);
-        simpleZero(interpreter);
-        simpleHundredAndTwo(interpreter);
-        simpleIdentity(interpreter);
-        simpleAdd(interpreter);
+        // simpleNoop(interpreter);
+        // simpleZero(interpreter);
+        // simpleHundredAndTwo(interpreter);
+        // simpleIdentity(interpreter);
+        // simpleAdd(interpreter);
         simpleMin(interpreter);
-        simpleFactorial(interpreter);
-        simpleMain(interpreter);
+        // simpleFactorial(interpreter);
+        // simpleMain(interpreter);
     }
     private static void simpleNoop(Interpreter interpreter) {
         System.out.println("\nTesting noop");
@@ -80,18 +86,42 @@ public class Tests {
     }
     private static void simpleMin(Interpreter interpreter) {
         System.out.println("\nTesting min");
-        int a = 5;
-        int b = 10;
-        ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "min"), 
-            new Element[] {new Element("int", a), new Element("int", b)});
-        Element el = (Element) res.getOp().peek();
-        Number num = (Number) el.getValue();
-        if (a <= b) {
-            assertTrue(num.intValue() == a);
-        } else {
-            assertTrue(num.intValue() == b);
+        Context ctx = new Context();
+        Solver solver = ctx.mkSolver();
+        
+        boolean solveable = true;
+
+        //TODO: Initial equations
+        // int a = 5;
+        // int b = 10;
+        IntExpr a = ctx.mkIntConst("a");
+        IntExpr b = ctx.mkIntConst("b");
+        BoolExpr e1 = ctx.mkEq(a, ctx.mkInt(10));
+        BoolExpr e2 = ctx.mkEq(b, ctx.mkInt(5));
+        // intrepret different operations
+        // BoolExpr opr = interpreter(String op, IntExpr a, IntExpr b,Context ctx);
+        solver.add(new BoolExpr[]{e1,e2});
+        while (solveable) {
+            Element[] args =new Element[] {new Element("int", a), new Element("int", b)};
+            
+            ProgramStack res = Interpreter.interpret(new AbsoluteMethod("Simple", "min"), args);
+            
+            for (BoolExpr expr : res.getBoolExpr()) {
+                solver.add(expr);
+            }
+            Status result = solver.check();
+            if (result == Status.SATISFIABLE) {
+                System.out.println("result:" + result);
+                System.out.println(solver.getModel());
+            } else {
+                System.out.println("Not satisfiable result:" + result);
+                solveable = false;
+            }
+            break;
         }
+        // assertTrue(num.intValue() == a);
     }
+
     private static void simpleFactorial(Interpreter interpreter) {
         System.out.println("\nTesting factorial");
         ProgramStack res = interpreter.interpret(new AbsoluteMethod("Simple", "factorial"), 

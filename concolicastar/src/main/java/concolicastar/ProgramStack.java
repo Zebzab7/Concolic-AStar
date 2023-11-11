@@ -4,16 +4,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.microsoft.z3.BoolExpr;
+
 public class ProgramStack {
     Stack lv;
     Stack op;
     AbsoluteMethod am;
     int pc;
-    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc) {
+    ArrayList<BoolExpr> boolExpr;
+
+    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc, ArrayList<BoolExpr> boolExpr) {
         this.lv = lv;
         this.op = op;
         this.am = am;
         this.pc = pc;
+        this.boolExpr = boolExpr;
     }
 
     public Stack getLv() {
@@ -27,6 +32,12 @@ public class ProgramStack {
     }
     public int getPc() {
         return pc;
+    }
+    public ArrayList<BoolExpr> getBoolExpr() {
+        return boolExpr;
+    }
+    public void setBoolExpr(ArrayList<BoolExpr> ctx) {
+        this.boolExpr = ctx;
     }
     public void setAm(AbsoluteMethod am) {
         this.am = am;

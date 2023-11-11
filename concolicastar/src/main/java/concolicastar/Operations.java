@@ -8,6 +8,9 @@ import java.util.Collections;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.IntExpr;
+
 public class Operations {
     public static JSONObject bc;
     public static JSONArray bm;
@@ -153,9 +156,20 @@ public class Operations {
             boolean res = ConcolicExecution.doCompare(oprString, value1, value2);
             if (res) {
                 stack.setPc(target.intValue()-1);
-            }                                                                    
+                // stack.getBoolExpr().add(new BoolExpr(value1, value2));
+            } else {
+                // stack.getBoolExpr().add(new BoolExpr(value1, value2))            
+            }                                                                
         }
         return stack;        
+    }
+    
+    public BoolExpr updateBoolExpr(String oprString, ArrayList<IntExpr> variables) {
+        BoolExpr boolExpr = null;
+        
+
+
+        return boolExpr;
     }
     
     public static ProgramStack _ifz(ProgramStack Stack){

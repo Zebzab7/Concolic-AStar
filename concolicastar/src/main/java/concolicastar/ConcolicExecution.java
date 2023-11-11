@@ -90,6 +90,7 @@ public class ConcolicExecution{
 
     public static boolean _lt(Number a, Number b){
         System.out.println("lt: "+ (a.doubleValue() < b.doubleValue()));
+        
         return a.doubleValue() < b.doubleValue();
     }
 

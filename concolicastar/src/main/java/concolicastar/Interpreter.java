@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+
 public class Interpreter {
 
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
@@ -29,7 +32,7 @@ public class Interpreter {
             args = new Element[0];
         }
         Bytecode bc = findMethod(am);
-        ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0);
+        ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, new ArrayList<BoolExpr>());
         for (Element el : args) {
             stack.getLv().push(el);
         }
