@@ -60,46 +60,56 @@ public class ConcolicExecution{
     
     public static Number _add(Number a,Number b){ 
         // symAdd(a, b);
+        System.out.println("add: "+ (a.doubleValue() + b.doubleValue()));
         return a.doubleValue() + b.doubleValue();
     }
     public static Number _sub(Number a, Number b){
+        System.out.println("sub: "+ (a.doubleValue() - b.doubleValue()));
         return a.doubleValue() - b.doubleValue();
     }
 
     public static Number _mul(Number a, Number b){
+        System.out.println("mul: "+ (a.doubleValue() * b.doubleValue()));
         return a.doubleValue() * b.doubleValue();
     }
 
     public static Number _div(Number a, Number b){
+        System.out.println("div: "+ (a.doubleValue() / b.doubleValue()));
         return a.doubleValue() / b.doubleValue();
     }
 
     public static Number _mod(Number a, Number b){
+        System.out.println("mod: "+ (a.doubleValue() % b.doubleValue()));
         return a.doubleValue() % b.doubleValue();
     }
  
     public static boolean _gt(Number a, Number b){
-        System.out.println("gt: "+ a.doubleValue() + " " + b.doubleValue());
+        System.out.println("gt: "+ (a.doubleValue() > b.doubleValue()));
         return a.doubleValue() > b.doubleValue();
     }
 
     public static boolean _lt(Number a, Number b){
+        System.out.println("lt: "+ (a.doubleValue() < b.doubleValue()));
         return a.doubleValue() < b.doubleValue();
     }
 
     public static boolean _eq(Number a, Number b){
+        System.out.println("eq: "+ (a.doubleValue() == b.doubleValue()));
         return a.doubleValue() == b.doubleValue();
     }
 
     public static boolean _ge(Number a, Number b){
+        System.out.println("ge: "+ (a.doubleValue() >= b.doubleValue()));
         return a.doubleValue() >= b.doubleValue();
     }
 
     public static boolean _lz(Number a, Number b){
+        System.out.println("lz: "+ (a.doubleValue() <= b.doubleValue()));
         return a.doubleValue() <= b.doubleValue();
     }
 
     public static boolean _le(Number a, Number b){
+        System.out.println("le: "+ (a.doubleValue() <= b.doubleValue()));
         return a.doubleValue() <= b.doubleValue();
     }
 

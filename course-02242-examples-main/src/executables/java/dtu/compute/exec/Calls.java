@@ -10,7 +10,7 @@ class Calls {
     @Case
     public static int fib(int n) {
         if (n < 2) {
-            return 1;
+            return 1; // finished return 1
         } else {
             return fib(n - 1) + fib(n - 2);
         }

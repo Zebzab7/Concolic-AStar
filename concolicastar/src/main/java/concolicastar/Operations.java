@@ -73,7 +73,7 @@ public class Operations {
         }else if(bc.get("type").equals("float")){
             System.out.println("(return) float: "+ stack.getOp().peek());
         }else{
-            System.out.println("return type not implemented "+ bc.get("type").toString());
+            throw new IllegalArgumentException("Not implemented yet" + "return type: " + bc.get("type"));
         }
        return stack;
     }
@@ -86,9 +86,10 @@ public class Operations {
         Number b = (Number) elb.getValue();
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
-            Number res = ConcolicExecution.doBinary(oprString,a,b);
+            Number res = ConcolicExecution.doBinary(oprString,b,a); //Reversed to fix order
             Element el = new Element("Double", res);
             Stack.getOp().push(el);
+            
         }
 
          // Symbolic execution with a symbolic input
@@ -150,7 +151,6 @@ public class Operations {
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, value1, value2);
-            System.out.println("Comperison is " + res);
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                    
@@ -219,8 +219,11 @@ public class Operations {
                 }
                 ProgramStack newStack1 =Interpreter.interpret(am,argElments);
                 if (newStack1 != null) {
-                    Stack.setLvAOp(newStack1);
+                    //pops top of invoked function OpStack and push to current stack
+                    Stack.getOp().push(newStack1.getOp().pop()); 
+                    //Stack.setLvAOp(newStack1);
                 }
+                System.out.println(Stack.toString());
                 break;
             case "virtual":
                 JSONObject ref1= (JSONObject) method.get("ref");
