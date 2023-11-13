@@ -7,6 +7,7 @@ import java.util.Collections;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import java.lang.reflect.Array;
 
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.IntExpr;
@@ -38,14 +39,7 @@ public class Operations {
 
         return stack;
     }
-    
-    // public static ProgramStack _add(ProgramStack Stack){
-    //     Number a = Stack.getLv().popNum();
-    //     Number b = Stack.getLv().popNum();
-    //     //Casts to the highest order https://www.w3schools.com/java/java_type_casting.asp
-    //     Stack.getLv().push(a.doubleValue() + b.doubleValue());
-    //     return Stack;
-    // }
+
     public static ProgramStack _load(ProgramStack stack){
         Number index = (Number) bc.get("index");
         String type = (String) bc.get("type");
@@ -68,7 +62,6 @@ public class Operations {
         return Stack;
     }
     public static ProgramStack _return(ProgramStack stack){
-        // System.out.println("Not implemented yet");
         if (bc.get("type") == null){
             System.out.println("(return) None");
         }else if( bc.get("type").equals("int")){
@@ -83,15 +76,13 @@ public class Operations {
 
     // Assumes that stack contains elements of type Number
     public static ProgramStack _binary(ProgramStack Stack){
-        Element ela = (Element) Stack.getOp().pop();
-        Number a = (Number) ela.getValue();
         Element elb = (Element) Stack.getOp().pop();
-        Number b = (Number) elb.getValue();
+        Element ela = (Element) Stack.getOp().pop();
+
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
-            Number res = ConcolicExecution.doBinary(oprString,b,a); //Reversed to fix order
-            Element el = new Element("Double", res);
-            Stack.getOp().push(el);
+            Element res = ConcolicExecution.doBinary(oprString,ela,elb); 
+            Stack.getOp().push(res);
             
         }
 
@@ -111,7 +102,6 @@ public class Operations {
         else{
             Stack.getLv().replace(index.intValue(), el);        
         }
-
         return Stack;
     }
 
@@ -125,12 +115,10 @@ public class Operations {
         Number incrAmount = (Number) bc.get("amount");
         int res = value.intValue() + incrAmount.intValue();
         Element elCopy = new Element(el.getType(), el.getValue());
+
         stack.getOp().pop();
         stack.getOp().push(elCopy);
         el.setValue(res);
-
-        // Stack.getLv().replace(index,)
-        // Stack.setLv();
         return stack;
     }
 
@@ -148,12 +136,10 @@ public class Operations {
         Element el1 = (Element) stack.getOp().pop();
         Number target = (Number) bc.get("target");
         
-        Number value1 = (Number) el1.getValue();
-        Number value2 = (Number) el2.getValue();
 
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, value1, value2);
+            boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
             if (res) {
                 stack.setPc(target.intValue()-1);
                 // stack.getBoolExpr().add(new BoolExpr(value1, value2));
@@ -178,12 +164,13 @@ public class Operations {
         Number num = (Number) bc.get("target");
         int target = num.intValue();
 
-        Number value = (Number) el.getValue();
-        Number zero = (Number) 0;
+        Element zero = new Element("int", 0);
+
         
+        //Finds the boolean condition
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, value, zero);
+            boolean res = ConcolicExecution.doCompare(oprString, el, zero);
             if (res) {
                 Stack.setPc(target-1);
             }                                                                    
@@ -209,9 +196,9 @@ public class Operations {
         Stack.getOp().push(el);
         return Stack;
     }
+
     public static ProgramStack _invoke(ProgramStack Stack) {
         String access = (String) bc.get("access");
-        String[] args_type =null;
         Element[] argElments = new Element[0];
         JSONObject method = (JSONObject) bc.get("method");
         switch (access) {
@@ -222,20 +209,21 @@ public class Operations {
                 String finalClass = className_array[className_array.length-1];
                 String methodName = (String) method.get("name");
                 AbsoluteMethod am = new AbsoluteMethod(finalClass,methodName);
-                System.out.println("Invoke: "+ am.toString());
+                System.out.println("Invoke: "+ am.toString() + "with args " + method.get("args"));
                 if (method.get("args")!=null) {
                     JSONArray args = (JSONArray) method.get("args");
-                    args_type = new String[args.size()];
                     argElments = new Element[args.size()];
+                    Element e = null;
                     for (int j = 0; j < args.size(); j++) { // 4 
-                        argElments[j] = new Element(args_type[args.size()-j-1], Stack.getOp().pop().getValue());
+                        e = (Element) Stack.getOp().pop();
+                        argElments[j] = new Element(e.getType(), e.getValue());
+                        System.out.println("argElments: "+ argElments[j].toString());
                     }
                 }
                 ProgramStack newStack1 =Interpreter.interpret(am,argElments);
                 if (newStack1 != null) {
                     //pops top of invoked function OpStack and push to current stack
-                    Stack.getOp().push(newStack1.getOp().pop()); 
-                    //Stack.setLvAOp(newStack1);
+                    Stack.getOp().push(newStack1.getOp().pop());
                 }
                 System.out.println(Stack.toString());
                 break;
@@ -269,19 +257,13 @@ public class Operations {
                 break;
             case "dynamic":
                 //dynamic
-                Number index = (Number) bc.get("index");
+                if(bc.get("index")!=null){
+                    int index = (int) (Number) bc.get("index");
+                    JSONObject object =(JSONObject) bm.get(index);
+                    System.out.println(object.toJSONString()); 
+                }
                 
                 String name = (String) method.get("name");
-                //if (method.get("args")!=null) {
-                //    JSONArray args = (JSONArray) method.get("args");
-                //    args_type = new String[args.size()];
-                //    argElments = new Element[args.size()];
-                //    for (int i = args.size()-1; i>=0 ; i++) {
-                //        for (int j = 0; j < args.size(); j++) {
-                //            argElments[j] = new Element(args_type[i], Stack.getLv().peek().getValue());
-                //        }
-                //    }
-                //}
                 if(name.equals("makeConcatWithConstants")){
                         System.out.println("Concatinating but not really ;)");
                         break;
@@ -321,16 +303,17 @@ public class Operations {
         if(!type.equals("int")){
             throw new IllegalArgumentException("Not implemented yet");
         }
-    
+        
+
         switch(dimension){
             case 1:
-                Stack.getLv().push(new Element(arrayType, new int[arr[0]]));
+                Stack.getLv().push(new Element(arrayType, Array.newInstance(type.getClass(), 0)));
                 break;
             case 2:
-                Stack.getLv().push(new Element (arrayType,new int[arr[0]][arr[1]]));
+                Stack.getLv().push(new Element (arrayType,Array.newInstance(type.getClass(), 0,0)));
                 break;
             case 3: 
-                Stack.getLv().push(new Element (arrayType,new int[arr[0]][arr[1]][arr[2]]));
+                Stack.getLv().push(new Element (arrayType,Array.newInstance(type.getClass(), 0,0,0)));
                 break;
             default:
                 throw new IllegalArgumentException("Not implemented yet");

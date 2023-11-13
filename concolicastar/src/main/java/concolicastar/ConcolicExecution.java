@@ -1,29 +1,32 @@
 package concolicastar;
+import com.fasterxml.jackson.databind.util.Converter;
 import com.microsoft.z3.*;
 public class ConcolicExecution{
 
-    public static Number doBinary(String opr, Number a,Number b){
+    public static Element doBinary(String opr, Element a,Element b){
         java.lang.reflect.Method method;
-        Number v = null;
+        Element v = null;
         try{
-            method = ConcolicExecution.class.getDeclaredMethod("_"+opr, Number.class, Number.class);
-            v = (Number)method.invoke(ConcolicExecution.class,a.doubleValue(),b.doubleValue());
+            method = ConcolicExecution.class.getDeclaredMethod("_"+opr,Element.class, Element.class);
+            v = (Element) method.invoke(ConcolicExecution.class,a,b);
         } catch (Exception e) {
-            System.out.println("Error: Method might not exist "+ e);
+            System.out.println("Error: Method might not exist "+ e + " " + opr);
+            e.printStackTrace();
         }
         
         return v;
     }
 
-     public static boolean doCompare(String opr, Number a,Number b){
+     public static boolean doCompare(String opr, Element a,Element b){
         java.lang.reflect.Method method;
         boolean v = false;
         try{
             System.out.println("Operation2: "+ opr);
-            method = ConcolicExecution.class.getDeclaredMethod("_"+opr, Number.class, Number.class);
-            v = (boolean) method.invoke(ConcolicExecution.class,a.doubleValue(),b.doubleValue());
+            method = ConcolicExecution.class.getDeclaredMethod("_"+opr, Element.class, Element.class);
+            v = (boolean) method.invoke(ConcolicExecution.class,a,b);
         } catch (Exception e) {
             System.out.println("Error: Method might not exist "+ e);
+            e.printStackTrace();
         }
         
         return v;
@@ -58,60 +61,165 @@ public class ConcolicExecution{
         
     }
     
-    public static Number _add(Number a,Number b){ 
+    public static Element _add(Element a,Element b){ 
         // symAdd(a, b);
-        System.out.println("add: "+ (a.doubleValue() + b.doubleValue()));
-        return a.doubleValue() + b.doubleValue();
-    }
-    public static Number _sub(Number a, Number b){
-        System.out.println("sub: "+ (a.doubleValue() - b.doubleValue()));
-        return a.doubleValue() - b.doubleValue();
-    }
-
-    public static Number _mul(Number a, Number b){
-        System.out.println("mul: "+ (a.doubleValue() * b.doubleValue()));
-        return a.doubleValue() * b.doubleValue();
-    }
-
-    public static Number _div(Number a, Number b){
-        System.out.println("div: "+ (a.doubleValue() / b.doubleValue()));
-        return a.doubleValue() / b.doubleValue();
+        System.out.println("add: "+ (((Number)a.getValue()).doubleValue() + ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return new Element("double",(Number) (aDouble + bDouble));
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return new Element("long",(Number) (aLong + bLong));
+        }
     }
 
-    public static Number _mod(Number a, Number b){
-        System.out.println("mod: "+ (a.doubleValue() % b.doubleValue()));
-        return a.doubleValue() % b.doubleValue();
+    public static Element _sub(Element a, Element b){
+        System.out.println("sub: "+ (((Number)a.getValue()).doubleValue() - ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return new Element("double",(Number) (aDouble - bDouble));
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return new Element("long",(Number) (aLong - bLong));
+        }
+    }
+
+    public static Element _mul(Element a, Element b){
+        System.out.println("mul: "+ (((Number)a.getValue()).doubleValue() * ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return new Element("double",(Number) (aDouble * bDouble));
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return new Element("long",(Number) (aLong * bLong));
+        }
+    }
+
+    public static Element _div(Element a, Element b){
+        System.out.println("div: "+ (((Number)a.getValue()).doubleValue() / ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return new Element("double",(Number) (aDouble / bDouble));
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return new Element("long",(Number) (aLong / bLong));
+        }
+    }
+
+    public static Element _mod(Element a, Element b){
+        System.out.println("div: "+ (((Number)a.getValue()).doubleValue() / ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return new Element("double",(Number) (aDouble % bDouble));
+        }
+        else{
+            Long aLong = Long.parseLong(objecta);
+            Long bLong = Long.parseLong(objectb);
+            return new Element("long",(Number) (aLong % bLong));
+        }
     }
  
-    public static boolean _gt(Number a, Number b){
-        System.out.println("gt: "+ (a.doubleValue() > b.doubleValue()));
-        return a.doubleValue() > b.doubleValue();
+    public static boolean _gt(Element a, Element b){
+        System.out.println("gt: "+ (((Number)a.getValue()).doubleValue() > ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return (aDouble > bDouble);
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return aLong > bLong;
+        }
     }
 
-    public static boolean _lt(Number a, Number b){
-        System.out.println("lt: "+ (a.doubleValue() < b.doubleValue()));
-        
-        return a.doubleValue() < b.doubleValue();
+    public static boolean _lt(Element a, Element b){
+        System.out.println("lt: "+ (((Number)a.getValue()).doubleValue() < ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return aDouble < bDouble;
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return aLong < bLong;
+        }
     }
 
-    public static boolean _eq(Number a, Number b){
-        System.out.println("eq: "+ (a.doubleValue() == b.doubleValue()));
-        return a.doubleValue() == b.doubleValue();
+    public static boolean _eq(Element a, Element b){
+        System.out.println("eq: "+ (((Number)a.getValue()).doubleValue() == ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return aDouble == bDouble;
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return aLong == bLong;
+        }
     }
 
-    public static boolean _ge(Number a, Number b){
-        System.out.println("ge: "+ (a.doubleValue() >= b.doubleValue()));
-        return a.doubleValue() >= b.doubleValue();
+    public static boolean _ge(Element a, Element b){
+        System.out.println("ge: "+ (((Number)a.getValue()).doubleValue() >= ((Number)b.getValue()).doubleValue()));
+        System.out.println("ge: "+ a.getValue() + " " + a.getType());
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return aDouble >= bDouble;
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return aLong >= bLong;
+        }
     }
 
-    public static boolean _lz(Number a, Number b){
-        System.out.println("lz: "+ (a.doubleValue() <= b.doubleValue()));
-        return a.doubleValue() <= b.doubleValue();
+    public static boolean _le(Element a, Element b){
+        System.out.println("le: "+ (((Number)a.getValue()).doubleValue() <= ((Number)b.getValue()).doubleValue()));
+        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
+        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        if(objecta.contains(".") || objectb.contains(".")){
+            Double aDouble =Double.parseDouble(objecta);
+            Double bDouble =Double.parseDouble(objectb);
+            return aDouble <= bDouble;
+        }
+        else{
+            Long aLong =Long.parseLong(objecta);
+            Long bLong =Long.parseLong(objectb);
+            return aLong <= bLong;
+        }
     }
-
-    public static boolean _le(Number a, Number b){
-        System.out.println("le: "+ (a.doubleValue() <= b.doubleValue()));
-        return a.doubleValue() <= b.doubleValue();
-    }
-
 }

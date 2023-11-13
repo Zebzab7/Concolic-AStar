@@ -34,6 +34,7 @@ public class Interpreter {
         Bytecode bc = findMethod(am);
         ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, new ArrayList<BoolExpr>());
         for (Element el : args) {
+            System.out.println(el.toString());
             stack.getLv().push(el);
         }
 
