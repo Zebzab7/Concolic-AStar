@@ -150,13 +150,13 @@ public class Operations {
         Number num = (Number) bc.get("target");
         int target = num.intValue();
 
-        Number value = (Number) el.getValue();
-        Number zero = (Number) 0;
+        Element zero = new Element("int", 0);
+
         
         //Finds the boolean condition
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, value, zero);
+            boolean res = ConcolicExecution.doCompare(oprString, el, zero);
             if (res) {
                 Stack.setPc(target-1);
             }                                                                    
@@ -209,8 +209,7 @@ public class Operations {
                 ProgramStack newStack1 =Interpreter.interpret(am,argElments);
                 if (newStack1 != null) {
                     //pops top of invoked function OpStack and push to current stack
-                    Stack.getOp().push(newStack1.getOp().pop()); 
-                    //Stack.setLvAOp(newStack1);
+                    Stack.getOp().push(newStack1.getOp().pop());
                 }
                 System.out.println(Stack.toString());
                 break;
