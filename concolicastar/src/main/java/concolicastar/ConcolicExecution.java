@@ -2,6 +2,7 @@ package concolicastar;
 import com.fasterxml.jackson.databind.util.Converter;
 import com.microsoft.z3.*;
 public class ConcolicExecution{
+    public static Z3PathState pathState = new Z3PathState();
 
     public static Element doBinary(String opr, Element a,Element b){
         java.lang.reflect.Method method;
@@ -69,11 +70,25 @@ public class ConcolicExecution{
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);
+
             return new Element("double",(Number) (aDouble + bDouble));
         }
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
+                         // Declare variables
+            pathState.declareVariable("a", pathState.getContext().mkIntSort());
+            pathState.declareVariable("b", pathState.getContext().mkIntSort());
+            pathState.addConstraint(pathState.getContext().mkEq((IntExpr) pathState.getVariable("a"), pathState.getContext().mkInt(aLong)));
+            pathState.addConstraint(pathState.getContext().mkEq((IntExpr) pathState.getVariable("b"), pathState.getContext().mkInt(bLong)));
+            pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkAdd(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(aLong+bLong))));
+            // Solve and print the model
+            Model model = pathState.solve();
+            if (model != null) {
+                System.out.println("Model: " + model);
+            } else {
+                System.out.println("No solution found");
+            }
             return new Element("long",(Number) (aLong + bLong));
         }
     }

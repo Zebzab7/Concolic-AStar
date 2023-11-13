@@ -226,8 +226,6 @@ public class Operations {
                     System.out.println(Stack.getOp());
                     Stack.getOp().pop();//Pops the PrintStream
                     Stack.getOp().pop();//Pops the PrintStream 
-
-
                     break;
                 }
                 
