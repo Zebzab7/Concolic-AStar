@@ -69,12 +69,12 @@ public class ConcolicExecution{
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble + bDouble));
+            return new Element("double",(Number) (aDouble + bDouble), null);
         }
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong + bLong));
+            return new Element("long",(Number) (aLong + bLong), null);
         }
     }
 
@@ -85,12 +85,12 @@ public class ConcolicExecution{
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble - bDouble));
+            return new Element("double",(Number) (aDouble - bDouble), null);
         }
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong - bLong));
+            return new Element("long",(Number) (aLong - bLong), null);
         }
     }
 
@@ -101,12 +101,12 @@ public class ConcolicExecution{
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble * bDouble));
+            return new Element("double",(Number) (aDouble * bDouble), null);
         }
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong * bLong));
+            return new Element("long",(Number) (aLong * bLong), null);
         }
     }
 
@@ -117,12 +117,12 @@ public class ConcolicExecution{
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble / bDouble));
+            return new Element("double",(Number) (aDouble / bDouble), null);
         }
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong / bLong));
+            return new Element("long",(Number) (aLong / bLong), null);
         }
     }
 
@@ -133,12 +133,12 @@ public class ConcolicExecution{
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble % bDouble));
+            return new Element("double",(Number) (aDouble % bDouble), null);
         }
         else{
             Long aLong = Long.parseLong(objecta);
             Long bLong = Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong % bLong));
+            return new Element("long",(Number) (aLong % bLong), null);
         }
     }
  

@@ -1,24 +1,23 @@
 package concolicastar;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.Sort;
 
 public class ProgramStack {
     Stack lv;
     Stack op;
     AbsoluteMethod am;
     int pc;
-    ArrayList<BoolExpr> boolExpr;
+    ArrayList<Expr<?>> expressions;
 
-    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc, ArrayList<BoolExpr> boolExpr) {
+    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc, ArrayList<Expr<?>> expressions) {
         this.lv = lv;
         this.op = op;
         this.am = am;
         this.pc = pc;
-        this.boolExpr = boolExpr;
+        this.expressions = expressions;
     }
 
     public Stack getLv() {
@@ -33,11 +32,11 @@ public class ProgramStack {
     public int getPc() {
         return pc;
     }
-    public ArrayList<BoolExpr> getBoolExpr() {
-        return boolExpr;
+    public ArrayList<Expr<?>> getExpressions() {
+        return expressions;
     }
-    public void setBoolExpr(ArrayList<BoolExpr> ctx) {
-        this.boolExpr = ctx;
+    public void setBoolExpr(ArrayList<Expr<?>> ctx) {
+        this.expressions = ctx;
     }
     public void setAm(AbsoluteMethod am) {
         this.am = am;
@@ -72,9 +71,11 @@ public class ProgramStack {
 class Element {
     String type;
     Object value;
-    public Element(String type, Object value){
+    Expr<?> symbolicValue;
+    public Element(String type, Object value, Expr<?> symbolicValue){
         this.type = type;
         this.value = value;
+        this.symbolicValue = symbolicValue;
     }
     public String getType(){
         return type;
@@ -82,14 +83,20 @@ class Element {
     public Object getValue(){
         return value;
     }
+    public Expr<?> getSymbolicValue(){
+        return symbolicValue;
+    }
     public void setType(String type){
         this.type = type;
     }
     public void setValue(Object value){
         this.value = value;
     }
+    public void setSymbolicValue(Expr<Sort> symbolicValue){
+        this.symbolicValue = symbolicValue;
+    }
     public String toString(){
-        return "Type: "+type+" Value: "+value;
+        return "Type: "+type+" Value: "+value + " SymbolicValue: "+symbolicValue;
     }
 }
 

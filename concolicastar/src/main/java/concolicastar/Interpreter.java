@@ -7,9 +7,10 @@ import org.json.simple.JSONObject;
 
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.Sort;
 
 public class Interpreter {
-
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     static BootstrapMethods bootstrapMethods;
     public Interpreter(ArrayList<JsonFile> files) {
@@ -27,26 +28,27 @@ public class Interpreter {
         }
     }
 
-    public static ProgramStack interpret(AbsoluteMethod am, Element[] args) {
+    public static ProgramStack interpret(AbsoluteMethod am, Element[] args) {   
         if (args == null) {
             args = new Element[0];
         }
         Bytecode bc = findMethod(am);
-        ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, new ArrayList<BoolExpr>());
+        ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, new ArrayList<Expr<?>>());
         for (Element el : args) {
-            System.out.println(el.toString());
+            // System.out.println(el.toString());
             stack.getLv().push(el);
         }
-
+        
         while (stack.getPc() < bc.getBytecode().size()) {
             JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
             String oprString = (String) bytecode.get("opr");
-            
+
             Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods());
             stack = Operations.doOperation(stack, oprString);
             if (oprString.equals("return")) {
                 return stack;
             }
+
             stack.setPc(stack.getPc() + 1);
             // System.out.println(stack.toString());
         }
