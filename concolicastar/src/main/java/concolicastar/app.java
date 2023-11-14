@@ -1,17 +1,7 @@
 package concolicastar;
 
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import org.json.simple.*;
-import org.json.simple.parser.*;
-import com.microsoft.z3.*;
-/**
- * Hello world!
- *
- */
 public class App 
 {
     public static void main( String[] args )
