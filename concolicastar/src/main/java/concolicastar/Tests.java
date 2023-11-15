@@ -6,8 +6,8 @@ public class Tests {
     
     public static void testList(Interpreter interpreter){
         System.out.println("Starting tests!!!");
-        //testSimple(interpreter);
-        testCalls(interpreter);
+        testSimple(interpreter);
+        // testCalls(interpreter);
         System.out.println("Tests done :O");
     }
     private static void testCalls(Interpreter interpreter) {
@@ -39,8 +39,8 @@ public class Tests {
         simpleIdentity(interpreter);
         simpleAdd(interpreter);
         simpleMin(interpreter);
-        simpleFactorial(interpreter);
-        simpleMain(interpreter);
+        // simpleFactorial(interpreter);
+        // simpleMain(interpreter);
     }
     private static void simpleNoop(Interpreter interpreter) {
         System.out.println("\nTesting noop");

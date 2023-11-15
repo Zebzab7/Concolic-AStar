@@ -1,10 +1,5 @@
 package concolicastar;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import java.lang.reflect.Array;
@@ -12,6 +7,7 @@ import java.lang.reflect.Array;
 public class Operations {
     public static JSONObject bc;
     public static JSONArray bm;
+    public static Z3PathState pathState = new Z3PathState();
 
     // import bytecode
     public Operations(JSONObject bc,JSONArray bootstrapMethods){
@@ -37,6 +33,7 @@ public class Operations {
         return stack;
     }
 
+
     public static ProgramStack _load(ProgramStack stack){
         Number index = (Number) bc.get("index");
         String type = (String) bc.get("type");
@@ -61,6 +58,7 @@ public class Operations {
     public static ProgramStack _return(ProgramStack stack){
         if (bc.get("type") == null){
             System.out.println("(return) None");
+
         }else if( bc.get("type").equals("int")){
             System.out.println("(return) int: "+ stack.getOp().peek());
         }else if(bc.get("type").equals("float")){
