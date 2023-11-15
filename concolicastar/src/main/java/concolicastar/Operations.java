@@ -1,13 +1,9 @@
 package concolicastar;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.ArithSort;
@@ -20,11 +16,14 @@ import com.microsoft.z3.Sort;
 public class Operations {
     public static JSONObject bc;
     public static JSONArray bm;
+    public static Context ctx;
+    public static Z3PathState pathState = new Z3PathState();
 
     // import bytecode
-    public Operations(JSONObject bc,JSONArray bootstrapMethods){
+    public Operations(JSONObject bc,JSONArray bootstrapMethods, Context ctx){
         Operations.bc = bc;
         Operations.bm = bootstrapMethods;
+        Operations.ctx = ctx;
     }
     
     //In case of boolean or char https://miro.medium.com/v2/resize:fit:720/format:webp/1*AQzGbqmrJfVMJeJ7UVQctw.png
@@ -143,12 +142,33 @@ public class Operations {
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
-            // bec.createIfExpression(bc, value1, value2, stack.getPc());
+            stack.getExpressions().add(generateBoolExpression(el1,el2,oprString));
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                
         }
         return stack;        
+    }
+
+    public static BoolExpr generateBoolExpression(Element e1, Element e2, String condition)  {
+        Expr expr1 = e1.getSymbolicValue();
+        Expr expr2 = e2.getSymbolicValue();
+        switch(condition) {
+            case "gt":
+                return ctx.mkGt(expr1, expr2);
+            case "ge":
+                return ctx.mkGe(expr1, expr2);
+            case "lt":
+                return ctx.mkLt(expr1, expr2);
+            case "le":
+                return ctx.mkLe(expr1, expr2);
+            case "eq":
+                return ctx.mkEq(expr1, expr2);
+            // case "ne":
+                // return ctx.mkNot(expr1, expr2);
+            default:
+                throw new IllegalArgumentException("Not implemented yet" + condition);
+        }
     }
     
     public BoolExpr updateBoolExpr(String oprString, ArrayList<IntExpr> variables) {
@@ -161,6 +181,7 @@ public class Operations {
 
     public static Expr<?> generateExpression(String type, Object value) {
         Context ctx = new Context();
+        // TODO:  
         switch (type) {
             case "int":
                 return ctx.mkIntConst(value.toString());
@@ -252,8 +273,6 @@ public class Operations {
                     System.out.println(Stack.getOp());
                     Stack.getOp().pop();//Pops the PrintStream
                     Stack.getOp().pop();//Pops the PrintStream 
-
-
                     break;
                 }
                 

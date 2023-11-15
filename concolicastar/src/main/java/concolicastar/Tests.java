@@ -113,8 +113,12 @@ public class Tests {
         while (solveable) {
             Element[] args = new Element[] {new Element("int", a, aExpr), new Element("int", b, bExpr)};
             
+            Interpreter.initContext();
             ProgramStack res = Interpreter.interpret(new AbsoluteMethod("Simple", "min"), args);
-            
+            Interpreter.closeContext();
+
+            System.out.println("RESULT: " + res + "\n");
+
             for (Expr<?> expr : res.getExpressions()) {
                 if (expr instanceof BoolExpr) {
                     solver.add((BoolExpr) expr);
@@ -133,6 +137,7 @@ public class Tests {
             }
             break;
         }
+        ctx.close();
         // assertTrue(num.intValue() == a);
     }
 

@@ -1,7 +1,7 @@
 package concolicastar;
-import com.fasterxml.jackson.databind.util.Converter;
 import com.microsoft.z3.*;
 public class ConcolicExecution{
+    public static Z3PathState pathState = new Z3PathState();
 
     public static Element doBinary(String opr, Element a,Element b){
         java.lang.reflect.Method method;
@@ -32,20 +32,123 @@ public class ConcolicExecution{
         return v;
     }
    
-    
+    public static void SymbolicOP(Double a,Double b,String opr){
+        pathState.declareVariable("a", pathState.getContext().mkRealSort());
+        pathState.declareVariable("b", pathState.getContext().mkRealSort());
+        pathState.addConstraint(pathState.getContext().mkEq((RealExpr) pathState.getVariable("a"),          
+        pathState.getContext().mkReal(a.toString())));
+        pathState.addConstraint(pathState.getContext().mkEq((RealExpr) pathState.getVariable("b"),   
+        pathState.getContext().mkReal(b.toString())));
+        // Solve and print the model
+        switch (opr) {
+            case "add":
+                    String sumab = Double.toString(a + b);
+                    pathState.addConstraint((pathState.getContext().mkEq((RealExpr)pathState.getContext().mkAdd((RealExpr)pathState.getVariable("a"),(RealExpr)pathState.getVariable("b")),pathState.getContext().mkReal(sumab))));
+                break;
+            case "sub":
+                    String subab = Double.toString(a - b);
+                    pathState.addConstraint((pathState.getContext().mkEq((RealExpr)pathState.getContext().mkSub(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkReal(subab))));
+                break;
+            case "mul":
+                    String mulab = Double.toString(a * b);
+                    pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkMul(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkReal(mulab))));
+                break;
+            case "div":
+                    String divab = Double.toString(a / b);
+                    pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkDiv(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(divab))));
+                break;
+            case "mod":
+                    String modab = Double.toString(a % b);
+                    pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkDiv(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(modab))));
+                break;
+            case "gt":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkGt(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a>b))));
+                break;
+            case "lt":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkLt(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a<b))));
+                break;
+            case "eq":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkEq(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a==b))));
+                break;
+            case "ge":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkGe(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a>b || a==b))));
+                break;
+            case "le":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkLe(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a<b || a==b))));
+                break;
+        
+            default:
+                break;
+        }
+        Model model = pathState.solve();
+        if (model != null) {
+            System.out.println("Model: " + model);
+            
+        } else {
+            System.out.println("No solution found");
+        }
+    }
+    public static void SymbolicOP(Long a,Long b, String opr){
+        pathState.declareVariable("a", pathState.getContext().mkIntSort());
+        pathState.declareVariable("b", pathState.getContext().mkIntSort());
+        pathState.addConstraint(pathState.getContext().mkEq((IntExpr) pathState.getVariable("a"), pathState.getContext().mkInt(a)));
+        pathState.addConstraint(pathState.getContext().mkEq((IntExpr) pathState.getVariable("b"), pathState.getContext().mkInt(b)));
+        // Solve and print the model
+        switch (opr) {
+            case "add":
+                    pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkAdd(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(a+b))));
+                break;
+            case "sub":
+                    pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkSub(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(a-b))));
+                break;
+            case "mul":
+                    pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkMul(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(a*b))));
+                break;
+            case "div":
+                    pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkDiv(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(a/b))));
+                break;
+            case "gt":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkGt(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a>b))));
+                break;
+            case "lt":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkLt(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a<b))));
+                break;
+            case "eq":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkEq(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a==b))));
+                break;
+            case "ge":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkGe(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a>b || a==b))));
+                break;
+            case "le":
+                    pathState.addConstraint((pathState.getContext().mkEq((BoolExpr)pathState.getContext().mkLe(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkBool(a<b || a==b))));
+                break;
+        
+            default:
+                break;
+        }
+        Model model = pathState.solve();
+        if (model != null) {
+            System.out.println("Model: " + model);
+
+        } else {
+            System.out.println("No solution found");
+        }
+    }
+
     public static void symAdd(Number a,Number b){
         // Create a Z3 context
         Context ctx = new Context();
         // Create variables
-        Expr x = ctx.mkConst("x",ctx.mkUninterpretedSort("UnknownType"));
-        Expr y = ctx.mkConst("y",ctx.mkUninterpretedSort("UnknownType"));
-        //  Perform the addition
-        Expr resAdd = ctx.mkAdd(x,y);
-
-        //  create a solver
-        Solver solver = ctx.mkSolver();
-        solver.add(ctx.mkEq(resAdd,ctx.mkInt(a.intValue()+b.intValue())));
+        Expr<?> x = ctx.mkConst("x", ctx.mkUninterpretedSort("UnknownType"));
+        Expr<?> y = ctx.mkConst("y", ctx.mkUninterpretedSort("UnknownType"));
         
+        // Perform the addition
+        ArithExpr<?> resAdd = (ArithExpr<?>) ctx.mkAdd((ArithExpr<?>) x, (ArithExpr<?>) y);
+
+        // Create a solver
+        Solver solver = ctx.mkSolver();
+        // solver.add(ctx.mkEq(resAdd, ctx.mkInt(a.intValue() + b.intValue())));
+
         // Check for satisfiability (optional)
         Status status = solver.check();
 

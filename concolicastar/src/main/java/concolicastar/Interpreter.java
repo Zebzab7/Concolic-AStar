@@ -11,6 +11,9 @@ import com.microsoft.z3.Expr;
 import com.microsoft.z3.Sort;
 
 public class Interpreter {
+
+    private static Context ctx;
+    
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     static BootstrapMethods bootstrapMethods;
     public Interpreter(ArrayList<JsonFile> files) {
@@ -28,7 +31,7 @@ public class Interpreter {
         }
     }
 
-    public static ProgramStack interpret(AbsoluteMethod am, Element[] args) {   
+    public static ProgramStack interpret(AbsoluteMethod am, Element[] args) {
         if (args == null) {
             args = new Element[0];
         }
@@ -38,12 +41,12 @@ public class Interpreter {
             // System.out.println(el.toString());
             stack.getLv().push(el);
         }
-        
+
         while (stack.getPc() < bc.getBytecode().size()) {
             JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
             String oprString = (String) bytecode.get("opr");
-
-            Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods());
+            
+            Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods(), ctx);
             stack = Operations.doOperation(stack, oprString);
             if (oprString.equals("return")) {
                 return stack;
@@ -53,6 +56,14 @@ public class Interpreter {
             // System.out.println(stack.toString());
         }
         return stack;
+    }
+
+    public static void initContext() {
+        ctx = new Context();
+    }
+
+    public static void closeContext() {
+        ctx.close();
     }
 
     public static Bytecode findMethod(AbsoluteMethod am) {
@@ -69,6 +80,10 @@ public class Interpreter {
             System.out.println(bytecode.toString());
             System.out.println();
         }
+    }
+
+    public Context getCtx() {
+        return ctx;
     }
 
     public void loadFiles() {
