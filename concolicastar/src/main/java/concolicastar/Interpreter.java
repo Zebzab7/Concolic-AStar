@@ -13,7 +13,6 @@ import com.microsoft.z3.Sort;
 public class Interpreter {
 
     private static Context ctx;
-    
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     static BootstrapMethods bootstrapMethods;
     public Interpreter(ArrayList<JsonFile> files) {
@@ -23,7 +22,8 @@ public class Interpreter {
                 JSONObject method = (JSONObject) obj;
                 String methodName = (String) method.get("name");
                 JSONObject code = (JSONObject) method.get("code");
-                Bytecode bc = new Bytecode(file.getFileName(), methodName , (JSONArray) code.get("bytecode"));
+                JSONArray args = (JSONArray) method.get("params");
+                Bytecode bc = new Bytecode(file.getFileName(), methodName , (JSONArray) code.get("bytecode"), args);
                 BootstrapMethods bm = new BootstrapMethods(file.getFileName(), methodName, (JSONArray) method.get("bootstrapMethods"));
                 bytecodes.add(bc);
                 bootstrapMethods = bm;
@@ -68,6 +68,10 @@ public class Interpreter {
                 return bytecode;
             }
         }
+        throw new IllegalArgumentException("Method not found: " + am.getMethodName());
+    }
+
+    public static Element[] getArguments(AbsoluteMethod am) {
         throw new IllegalArgumentException("Method not found: " + am.getMethodName());
     }
 

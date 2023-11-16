@@ -3,8 +3,6 @@ package concolicastar;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
@@ -19,7 +17,6 @@ public class Tests {
         System.out.println("Starting tests!!!");
         testSimple(interpreter);
         // testCalls(interpreter);
-
         System.out.println("Tests done :O");
     }
     private static void testHelloWorld(Interpreter interpreter){
@@ -31,7 +28,7 @@ public class Tests {
     }
     private static void testSimple(Interpreter interpreter) {
         System.out.println("Testing simple");
-        testFunction(interpreter, new AbsoluteMethod("Simple", "min"));
+        testFunction(interpreter, new AbsoluteMethod("Simple", "min")); 
     }
     private static void testCalls(Interpreter interpreter) {
         System.out.println("Testing calls");
@@ -57,44 +54,72 @@ public class Tests {
         Context ctx = new Context();
         Interpreter.setContext(ctx);
 
-        //TODO: Add getArguments(AbsoluteMethod am) to Interpreter
-        // TODO: Expand to work with any type of arguments
-        IntExpr aExpr = ctx.mkIntConst("a");
-        IntExpr bExpr = ctx.mkIntConst("b");
-        ArrayList<Integer> concreteValues = new ArrayList<Integer>(Arrays.asList(0, 0));
-        ArrayList<IntExpr> symbolicValues = new ArrayList<IntExpr>(Arrays.asList(aExpr, bExpr));
+        // List of elements from alphabet: 
+        String[] alphabet = {"a", "b", "c", "d", "e", "f", "g", "h", "i"};
+        int count = 0;
+
+        ArrayList<Element> elements = new ArrayList<Element>();
+
+        // Read the arguments of the method and assign initial values
+        Bytecode bc = Interpreter.findMethod(am);
+        ArrayList<String> argTypes = bc.getArgsTypes();
+        for (String type : argTypes) {
+            switch (type) {
+                case "int":
+                    IntExpr intExpr = ctx.mkIntConst(alphabet[count]);
+                    elements.add(new Element("int", 0, intExpr));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Type not handled");
+            }
+            count++;
+        }
 
         BoolExpr fullExpr = ctx.mkTrue();
         Solver solver = ctx.mkSolver();
         Status s = solver.check();
 
-        boolean solveable = true;
-        while (solveable) {
+        while (true) {
             solver = ctx.mkSolver();
             solver.add(fullExpr);
 
+            // Solve the model
             System.out.println("Solver: " + solver);
             Status satisfiable = solver.check();
             if (satisfiable == Status.SATISFIABLE) {
                 System.out.println("SATISFIABLE");
+
                 Model model = solver.getModel();
                 System.out.println("model"+ model);
-                for (int i = 0; i < symbolicValues.size(); i++) {
-                    IntExpr expr = symbolicValues.get(i);
-                    if (model.getConstInterp(expr) != null) {
-                        concreteValues.set(i, Integer.parseInt(model.getConstInterp(expr).toString()));
+
+                // Update the values of the elements if they changed
+                for (int i = 0; i < elements.size(); i++) {
+                    Element e = elements.get(i);
+                    switch (e.getType()) {
+                        case "int":
+                            IntExpr expr = (IntExpr) e.getSymbolicValue();
+                            if (model.getConstInterp(expr) != null) {
+                                e.setValue(Integer.parseInt(model.getConstInterp(expr).toString()));
+                            }
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Type not handled");
                     }
                 }
-                System.out.println("result: " + satisfiable);
             } else {
                 System.out.println("NOT SATISFIABLE");
-                solveable = false;
+                break;
             }
             
             // Element[] args = new Element[] {new Element("int", concreteA, aExpr), new Element("int", concreteB, bExpr)};
-            Element[] args = new Element[concreteValues.size()];
-            for (int i = 0; i < concreteValues.size(); i++) {
-                args[i] = new Element("int", concreteValues.get(i), symbolicValues.get(i));
+            // Element[] args = new Element[concreteValues.size()];
+            // for (int i = 0; i < concreteValues.size(); i++) {
+            //     args[i] = new Element("int", concreteValues.get(i), symbolicValues.get(i));
+            // }
+
+            Element[] args = new Element[elements.size()];
+            for (int i = 0; i < elements.size(); i++) {
+                args[i] = elements.get(i);
             }
 
             ProgramStack res = Interpreter.interpret(am, args);
