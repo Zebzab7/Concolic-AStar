@@ -6,6 +6,7 @@ import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Model;
 import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 
@@ -94,51 +95,50 @@ public class Tests {
     private static void simpleMin(Interpreter interpreter) {
         System.out.println("\nTesting min");
         Context ctx = new Context();
+        Interpreter.setContext(ctx);
+
         Solver solver = ctx.mkSolver();
+        BoolExpr fullExpr = ctx.mkTrue();
+
+        // Concrete values
+        int concreteA = 5;
+        int concreteB = 10;
         
-        boolean solveable = true;
-
-        int a = 5;
-        int b = 10;
-
+        // Symbolic values
         IntExpr aExpr = ctx.mkIntConst("a");
         IntExpr bExpr = ctx.mkIntConst("b");
-
-        BoolExpr e1 = ctx.mkEq(aExpr, aExpr);
-        BoolExpr e2 = ctx.mkEq(bExpr, bExpr);
-
-        // intrepret different operations
-        // BoolExpr opr = interpreter(String op, IntExpr a, IntExpr b,Context ctx);
-        solver.add(new BoolExpr[]{e1,e2});
+        
+        boolean solveable = true;
         while (solveable) {
-            Element[] args = new Element[] {new Element("int", a, aExpr), new Element("int", b, bExpr)};
-            
-            Interpreter.initContext();
-            ProgramStack res = Interpreter.interpret(new AbsoluteMethod("Simple", "min"), args);
-            Interpreter.closeContext();
+            solver = ctx.mkSolver();
+            solver.add(fullExpr);
 
-            System.out.println("RESULT: " + res + "\n");
+            System.out.println("Solver: " + solver);
+            Status satisfiable = solver.check();
+            if (satisfiable == Status.SATISFIABLE) {
+                Model model = solver.getModel();
+                System.out.println("model"+ model);
 
-            for (Expr<?> expr : res.getExpressions()) {
-                if (expr instanceof BoolExpr) {
-                    solver.add((BoolExpr) expr);
-                }
-            }
-            Status result = solver.check();
+                concreteA = Integer.parseInt(model.getConstInterp(aExpr).toString());
+                concreteB = Integer.parseInt(model.getConstInterp(bExpr).toString());
 
-            // At this point print all boolean expressions:
-            System.out.println("\nPrinting constraints: " + solver);
-            if (result == Status.SATISFIABLE) {
-                System.out.println("result: " + result);
-                System.out.println(solver.getModel());
+                System.out.println("a: " + concreteA);
+                System.out.println("b: " + concreteB);
+
+                System.out.println("result: " + satisfiable);
             } else {
-                System.out.println("Not satisfiable result:" + result);
+                System.out.println("Not satisfiable result:" + satisfiable);
                 solveable = false;
             }
-            break;
+            
+            Element[] args = new Element[] {new Element("int", concreteA, aExpr), new Element("int", concreteB, bExpr)};
+            ProgramStack res = Interpreter.interpret(new AbsoluteMethod("Simple", "min"), args);
+            System.out.println("\nRESULT: " + res.getBoolExpr().toString());
+            
+            BoolExpr resExpr = ctx.mkNot((BoolExpr) res.getBoolExpr());
+            fullExpr = ctx.mkAnd(fullExpr, resExpr);
         }
         ctx.close();
-        // assertTrue(num.intValue() == a);
     }
 
     // private static void simpleFactorial(Interpreter interpreter) {

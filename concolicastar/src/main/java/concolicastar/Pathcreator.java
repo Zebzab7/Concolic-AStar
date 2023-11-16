@@ -1,6 +1,7 @@
 package concolicastar;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -9,6 +10,15 @@ public class Pathcreator {
 
     ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     AbsoluteMethod startam;
+
+    HashMap<Integer,Integer> pcMap = new HashMap<Integer,Integer>();
+    /*
+     * 
+     * [20 -> 15],
+     * [14 -> 10],
+     * 
+     * 
+     */
     
     public Pathcreator(ArrayList<JsonFile> files, AbsoluteMethod am) {
         this.startam =am;
@@ -25,7 +35,7 @@ public class Pathcreator {
             }
         }
     }
-
+    
     public void findPath(int EndIndex,AbsoluteMethod am){
         Bytecode bc = Interpreter.findMethod(am);
         int pc = 0;

@@ -36,7 +36,7 @@ public class Interpreter {
             args = new Element[0];
         }
         Bytecode bc = findMethod(am);
-        ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, new ArrayList<Expr<?>>());
+        ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, ctx.mkTrue());
         for (Element el : args) {
             // System.out.println(el.toString());
             stack.getLv().push(el);
@@ -58,12 +58,8 @@ public class Interpreter {
         return stack;
     }
 
-    public static void initContext() {
-        ctx = new Context();
-    }
-
-    public static void closeContext() {
-        ctx.close();
+    public static void setContext(Context ctx) {
+        Interpreter.ctx = ctx;
     }
 
     public static Bytecode findMethod(AbsoluteMethod am) {

@@ -6,12 +6,10 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import com.microsoft.z3.ArithExpr;
-import com.microsoft.z3.ArithSort;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.IntExpr;
-import com.microsoft.z3.Sort;
 
 public class Operations {
     public static JSONObject bc;
@@ -142,7 +140,9 @@ public class Operations {
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
-            stack.getExpressions().add(generateBoolExpression(el1,el2,oprString));
+            BoolExpr newExpr = generateBoolExpression(el1,el2,oprString,res);
+            BoolExpr currentExpr = stack.getBoolExpr();
+            stack.setBoolExpr(ctx.mkAnd(currentExpr, newExpr));
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                
@@ -150,20 +150,48 @@ public class Operations {
         return stack;        
     }
 
-    public static BoolExpr generateBoolExpression(Element e1, Element e2, String condition)  {
-        Expr expr1 = e1.getSymbolicValue();
-        Expr expr2 = e2.getSymbolicValue();
+    public static BoolExpr generateBoolExpression(Element e1, Element e2, String condition, boolean result)  {
+        ArithExpr<?> expr1 = (ArithExpr<?>) e1.getSymbolicValue();
+        ArithExpr<?> expr2 = (ArithExpr<?>) e2.getSymbolicValue();
+
+        // Expr<IntSort> expr = ctx.mkIntConst("a");
+        if(e1.getValue().toString().contains(".")||e2.getValue().toString().contains(".")){
+            //double
+        }else{
+            //long
+        }
         switch(condition) {
             case "gt":
-                return ctx.mkGt(expr1, expr2);
+                if (result) {
+                    return ctx.mkGt(expr1, expr2);
+                } else {
+                    return ctx.mkLe(expr1, expr2);
+                    
+                }
             case "ge":
-                return ctx.mkGe(expr1, expr2);
+                if (result) {
+                    return ctx.mkGe(expr1, expr2);
+                } else {
+                    return ctx.mkLt(expr1, expr2);
+                }
             case "lt":
-                return ctx.mkLt(expr1, expr2);
+                if (result) {
+                    return ctx.mkLt(expr1, expr2);
+                } else {
+                    return ctx.mkGe(expr1, expr2);
+                }
             case "le":
-                return ctx.mkLe(expr1, expr2);
+                if (result) {
+                    return ctx.mkLe(expr1, expr2);
+                } else {
+                    return ctx.mkGt(expr1, expr2);
+                }
             case "eq":
-                return ctx.mkEq(expr1, expr2);
+                if (result) {
+                    return ctx.mkEq(expr1, expr2);
+                } else {
+                    return ctx.mkNot(ctx.mkEq(expr1, expr2));
+                }
             // case "ne":
                 // return ctx.mkNot(expr1, expr2);
             default:

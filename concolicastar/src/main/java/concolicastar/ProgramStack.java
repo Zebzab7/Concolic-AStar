@@ -2,6 +2,7 @@ package concolicastar;
 
 import java.util.ArrayList;
 
+import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.Sort;
 
@@ -10,14 +11,14 @@ public class ProgramStack {
     Stack op;
     AbsoluteMethod am;
     int pc;
-    ArrayList<Expr<?>> expressions;
+    BoolExpr boolExpr;
 
-    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc, ArrayList<Expr<?>> expressions) {
+    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc, BoolExpr boolExpr) {
         this.lv = lv;
         this.op = op;
         this.am = am;
         this.pc = pc;
-        this.expressions = expressions;
+        this.boolExpr = boolExpr;
     }
 
     public Stack getLv() {
@@ -32,11 +33,11 @@ public class ProgramStack {
     public int getPc() {
         return pc;
     }
-    public ArrayList<Expr<?>> getExpressions() {
-        return expressions;
+    public BoolExpr getBoolExpr() {
+        return boolExpr;
     }
-    public void setBoolExpr(ArrayList<Expr<?>> ctx) {
-        this.expressions = ctx;
+    public void setBoolExpr(BoolExpr expr) {
+        this.boolExpr = expr;
     }
     public void setAm(AbsoluteMethod am) {
         this.am = am;
@@ -63,6 +64,7 @@ public class ProgramStack {
         sb.append("op: " + op.toString() + "\n");
         sb.append("am: " + am.toString() + "\n");
         sb.append("pc: " + pc + "\n");
+        sb.append("expressions: " + boolExpr.toString() + "\n");
         return sb.toString();
     }
 }
