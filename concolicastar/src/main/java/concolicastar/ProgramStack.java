@@ -2,6 +2,7 @@ package concolicastar;
 
 import java.util.ArrayList;
 
+import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.Sort;
