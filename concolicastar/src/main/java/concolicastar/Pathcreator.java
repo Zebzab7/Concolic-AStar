@@ -28,7 +28,8 @@ public class Pathcreator {
                 JSONObject method = (JSONObject) obj;
                 String methodName = (String) method.get("name");
                 JSONObject code = (JSONObject) method.get("code");
-                Bytecode bc = new Bytecode(file.getFileName(), methodName , (JSONArray) code.get("bytecode"));
+                JSONArray args = (JSONArray) method.get("params");
+                Bytecode bc = new Bytecode(file.getFileName(), methodName , (JSONArray) code.get("bytecode"), args);
                 BootstrapMethods bm = new BootstrapMethods(file.getFileName(), methodName, (JSONArray) method.get("bootstrapMethods"));
                 bytecodes.add(bc);
 

@@ -32,7 +32,7 @@ public class Simple {
 
     @Case
     public static int min(int a, int b) {
-        if (a + c <= b) return a;
+        if (a <= b) return a;
         else return b;
     }
 

@@ -53,6 +53,14 @@ public class ProgramStack {
         this.pc = pc;
     }
 
+    public void addBoolExpr(BoolExpr expr) {
+        if (boolExpr == null) {
+            boolExpr = expr;
+        } else {
+            boolExpr = Interpreter.getCtx().mkAnd(boolExpr, expr);
+        }
+    }
+
     public ProgramStack setLvAOp(ProgramStack stack){
         this.lv = stack.getLv();
         this.op = stack.getOp();

@@ -58,7 +58,7 @@ public class Operations {
         JSONObject values = (JSONObject) bc.get("value");
         String type = (String) values.get("type");
         Object value = values.get("value");
-        Element el = new Element(type, value, generateExpression(type, value));
+        Element el = new Element(type, value, generateArithExpression(type, value));
         Stack.getOp().push(el);
         return Stack;
     }
@@ -91,19 +91,20 @@ public class Operations {
         return Stack;
     }
 
-    public static ProgramStack _store(ProgramStack Stack){
-        Element el = Stack.getOp().pop();
+    public static ProgramStack _store(ProgramStack stack){
+        Element el = stack.getOp().pop();
         if(bc.get("type").equals("ref")){
+            //TODO: Implement this?
             throw new IllegalArgumentException("Not implemented yet");
         }
         Number index = (Number) bc.get("index");
-        if (index.intValue() >= Stack.getLv().size()){
-            Stack.getLv().push(el);
+        if (index.intValue() >= stack.getLv().size()){
+            stack.getLv().push(el);
         }
         else{
-            Stack.getLv().replace(index.intValue(), el);        
+            stack.getLv().replace(index.intValue(), el);        
         }
-        return Stack;
+        return stack;
     }
 
     public static ProgramStack _incr(ProgramStack stack){
@@ -140,14 +141,32 @@ public class Operations {
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
-            BoolExpr newExpr = generateBoolExpression(el1,el2,oprString,res);
-            BoolExpr currentExpr = stack.getBoolExpr();
-            stack.setBoolExpr(ctx.mkAnd(currentExpr, newExpr));
+            stack.addBoolExpr(generateBoolExpression(el1,el2,oprString,res));
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                
         }
         return stack;        
+    }
+
+    public static ProgramStack _ifz(ProgramStack stack){
+        Element el = (Element) stack.getOp().pop();
+
+        Number num = (Number) bc.get("target");
+        int target = num.intValue();
+
+        Element zero = new Element("int", 0, generateArithExpression("integer", 0));
+
+        // Finds the boolean condition
+        if(bc.get("condition")!= null){
+            String oprString = (String) bc.get("condition");
+            boolean res = ConcolicExecution.doCompare(oprString, el, zero);
+            stack.addBoolExpr(generateBoolExpression(el,zero,oprString,res));
+            if (res) {
+                stack.setPc(target-1);
+            }                                                                    
+        }
+        return stack;
     }
 
     public static BoolExpr generateBoolExpression(Element e1, Element e2, String condition, boolean result)  {
@@ -199,20 +218,12 @@ public class Operations {
         }
     }
     
-    public BoolExpr updateBoolExpr(String oprString, ArrayList<IntExpr> variables) {
-        BoolExpr boolExpr = null;
-        
-
-
-        return boolExpr;
-    }
-
-    public static Expr<?> generateExpression(String type, Object value) {
-        Context ctx = new Context();
-        // TODO:  
+    public static ArithExpr<?> generateArithExpression(String type, Object value) {
+        // TODO: Implement all cases
+        Number num = (Number) value;
         switch (type) {
-            case "int":
-                return ctx.mkIntConst(value.toString());
+            case "integer":
+                return ctx.mkInt(num.intValue());	
             default:
                 break;
         }
@@ -220,25 +231,6 @@ public class Operations {
         return null;
     }
     
-    public static ProgramStack _ifz(ProgramStack Stack){
-        Element el = (Element) Stack.getOp().pop();
-
-        Number num = (Number) bc.get("target");
-        int target = num.intValue();
-
-        Element zero = new Element("int", 0, generateExpression("int", 0));
-
-        //Finds the boolean condition
-        if(bc.get("condition")!= null){
-            String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, el, zero);
-            if (res) {
-                Stack.setPc(target-1);
-            }                                                                    
-        }
-        return Stack;
-    }
-
     public static ProgramStack _goto(ProgramStack Stack){
         Number numIndex = (Number) bc.get("target");
         int target = numIndex.intValue();
@@ -253,7 +245,7 @@ public class Operations {
         JSONObject fieldType = (JSONObject) field.get("type");
         String typeName = (String) fieldType.get("name");
         String typeKind = (String) fieldType.get("kind");
-        Element el  = new Element(typeKind, typeName, generateExpression(typeKind, typeName));
+        Element el  = new Element(typeKind, typeName, generateArithExpression(typeKind, typeName));
         Stack.getOp().push(el);
         return Stack;
     }
