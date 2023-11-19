@@ -47,10 +47,8 @@ public class ProgramStack {
                 JSONObject target = (JSONObject) bc.getBytecode().get(targetIndex-1);
                 String targetOpr = (String) target.get("opr");
 
-                //TODO: Consider if there are other cases where this somehow is true?
-
                 // IF there is a goto at target-1 AND it jumps backwards THEN it must be a loop
-                // IF there is one and it g fjumpsrwards, it must an if-else
+                // IF there is one and it jumpsrwards, it must an if-else
                 // ELSE it must be an if
                 Number numTarget = (Number) target.get("target");
                 int targetTarget = numTarget.intValue();

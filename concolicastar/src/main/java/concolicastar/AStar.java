@@ -72,16 +72,3 @@
     
 // }
 
-// if (input > 10) {
-//     if (input % 2 == 0) {
-//         System.out.println("Input is greater than 10 and even");
-//     } else {
-//         System.out.println("Input is greater than 10 but odd");
-//     }
-// } else {
-//     if (input < 5) {
-//         System.out.println("Input is less than 5");
-//     } else {
-//         System.out.println("Input is between 5 and 10");
-//     }
-// }
