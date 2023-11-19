@@ -1,6 +1,8 @@
 package concolicastar;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.json.simple.JSONArray;
@@ -10,9 +12,17 @@ public class Pathcreator {
 
     ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     AbsoluteMethod startam;
-    ArrayList<AbsoluteMethod> methodStack = new ArrayList<AbsoluteMethod>();
+    HashMap<AbsoluteMethod,ArrayList<classdiag>> methodStack = new HashMap<AbsoluteMethod,ArrayList<classdiag>>();
     ArrayList<PathHolder> pathStack = new ArrayList<PathHolder>();
 
+    /*
+     * 
+     * [20 -> 15],
+     * [14 -> 10],
+     * 
+     * 
+     */
+    
     public Pathcreator(ArrayList<JsonFile> files, AbsoluteMethod am) {
         this.startam =am;
         for(JsonFile file : files) {
@@ -27,21 +37,33 @@ public class Pathcreator {
 
             }
         }
+        findMethodsContainingMethods();
+        System.out.println(methodstacktoString());
     }
-    public ArrayList<AbsoluteMethod> findMethodsContainingMethods(AbsoluteMethod am){
-        ArrayList<AbsoluteMethod> methods = new ArrayList<AbsoluteMethod>();
+    public void findMethodsContainingMethods(){
+        int invoke =0;
         for(Bytecode bc : bytecodes){
             for(Object obj : bc.getBytecode()){
+                invoke++;
                 JSONObject bytecode = (JSONObject) obj;
-                if(bytecode.get("opr").equals("invoke")){
-                    if(bytecode.get("name").equals(am.getMethodName())){
-                        methods.add(bc.getAm());
-                        //return methods;   //Idea is found one, good enough.
+                //Asuming that all invokestatic are methods and none are other things.
+                if(bytecode.get("opr").equals("invoke") && bytecode.get("access").equals("static")){
+                    JSONObject method = (JSONObject) bytecode.get("method");
+                    String className = (String) ((JSONObject) method.get("ref")).get("name");  
+                    String methodName = (String) (method.get("name"));
+                    AbsoluteMethod am = new AbsoluteMethod(className,methodName);
+
+                    //Checks if it exists, if not create new Arraylist object
+                    if(!methodStack.containsKey(am)){
+                        methodStack.put(am, new ArrayList<>());
                     }
+                    //adds to methodstack
+                    methodStack.get(am).add(new classdiag(bc.getAm(),invoke));
+                    
                 }
             }
+            invoke=0;
         }
-        return methods;
     }
 
     //Quickcheck if already in map
@@ -96,7 +118,57 @@ public class Pathcreator {
         }
         
     }
+    public String methodstacktoString(){
+        String s = "";
+        for(AbsoluteMethod am : methodStack.keySet()){
+            s += am.toString() + "=[";
+            for(classdiag cd : methodStack.get(am)){
+                s+= cd.getAM().toString() + " from " + cd.getInstruction() + ", ";
+            }
+            s += "]\n";
+        }
+
+        return s;
+    }
+
+
 }
+
+/**
+ * InnerPathcreator
+ */
+
+class classdiag {
+    AbsoluteMethod am;
+    int instruction;
+
+    public classdiag(AbsoluteMethod am, int instruction) {
+        this.am = am;
+        this.instruction = instruction;
+    }
+    public AbsoluteMethod getAM(){
+        return am;
+    }
+    public int getInstruction(){
+        return instruction;
+    }
+    public void setAM(AbsoluteMethod am){
+        this.am = am;
+    }
+    public void setInstruction(int instruction){
+        this.instruction = instruction;
+    }
+
+    public String methodStacktoString(){
+        methodStack.toString();
+        
+        return "";
+
+    }
+
+    
+}
+
 class PathHolder{
     AbsoluteMethod am;
     HashMap<Integer,Integer> map;

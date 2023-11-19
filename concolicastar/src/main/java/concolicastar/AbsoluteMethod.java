@@ -18,6 +18,11 @@ public class AbsoluteMethod {
         }
         return false;
     }
+    
+    @Override
+    public int hashCode() {
+        return className.hashCode() + methodName.hashCode();
+    }
 
     public String getClassName() {
         return className;
