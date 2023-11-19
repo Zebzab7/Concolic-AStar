@@ -10,7 +10,7 @@ public class App
         files = Folders.findFiles("projects/course-examples/json",".json");
 
         Interpreter interpreter = new Interpreter(files);
-        // interpreter.interpret("method");
+        Pathcreator pathcreator = new Pathcreator(files, new AbsoluteMethod("Simple", "hundredAndTwo"));
         Tests.testList(interpreter);
     }
 }

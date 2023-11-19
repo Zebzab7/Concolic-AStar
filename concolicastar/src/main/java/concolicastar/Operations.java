@@ -148,10 +148,6 @@ public class Operations {
                 stack.getExpressionCreatedVector().set(stack.getPc(), true);
                 stack.addBoolExpr(generateIfElseBoolExpression(el1,el2,oprString,res));
             }
-            // } 
-            // else {
-            //     stack.addBoolExpr(generateIfElseBoolExpression(el1,el2,oprString,res));
-            // }
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                
@@ -178,10 +174,6 @@ public class Operations {
                 stack.getExpressionCreatedVector().set(stack.getPc(), true);
                 stack.addBoolExpr(generateIfElseBoolExpression(el,zero,oprString,res));
             }
-            // } 
-            // else {
-            //     stack.addBoolExpr(generateIfElseBoolExpression(el,zero,oprString,res));
-            // }
             if (res) {
                 stack.setPc(target-1);
             }                                                                    

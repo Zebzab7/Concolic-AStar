@@ -12,14 +12,7 @@ public class Pathcreator {
     AbsoluteMethod startam;
     ArrayList<AbsoluteMethod> methodStack = new ArrayList<AbsoluteMethod>();
     ArrayList<PathHolder> pathStack = new ArrayList<PathHolder>();
-    /*
-     * 
-     * [20 -> 15],
-     * [14 -> 10],
-     * 
-     * 
-     */
-    
+
     public Pathcreator(ArrayList<JsonFile> files, AbsoluteMethod am) {
         this.startam =am;
         for(JsonFile file : files) {
