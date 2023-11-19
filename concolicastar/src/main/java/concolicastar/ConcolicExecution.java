@@ -169,6 +169,8 @@ public class ConcolicExecution{
         System.out.println("add: "+ (((Number)a.getValue()).doubleValue() + ((Number)b.getValue()).doubleValue()));
         String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
         String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
+        // Expr<?> symoboliExpra = a.getSymbolicValue();
+        // Expr<?> symoboliExprb = b.getSymbolicValue();
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);

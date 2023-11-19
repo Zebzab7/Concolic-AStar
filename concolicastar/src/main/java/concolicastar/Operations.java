@@ -138,10 +138,24 @@ public class Operations {
         Element el1 = (Element) stack.getOp().pop();
         Number target = (Number) bc.get("target");
 
+        // get the target here to check whethew it's a loop or not
+        Boolean flag =false;
+        for (Integer opr : Interpreter.branches.keySet()){
+            if (Interpreter.branches.get(opr).equals("loop")) {
+                // i-->target
+                if (Interpreter.jumps.get(target).equals(opr)) {
+                    flag = true;
+                }
+            }
+        }
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
-            stack.addBoolExpr(generateBoolExpression(el1,el2,oprString,res));
+            if (!flag) {
+                // do concolic again
+                stack.addBoolExpr(generateBoolExpression(el1,el2,oprString,res));
+            }
+            // stack.addBoolExpr(generateBoolExpression(el1,el2,oprString,res));
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                

@@ -45,6 +45,32 @@ public class Simple {
         return m;
     }
 
+    @Case 
+    public static int someFunction(int n) {
+        int x = 0;
+        if (n > 10) {
+            x *= 2;
+        } else {
+            x *= 3;
+        }
+        x *= 4;
+        return x;
+    }
+
+    @Case 
+    public static int ifInLoop(int n) {
+        int x = 0;
+        while (n > 0) {
+            if (n > 10) {
+                x = 2;
+            } else {
+                x = 3;
+            }
+            n--;
+        }
+        return x;
+    }
+
     public static void main(String [] args) {
         System.out.println("noop");
         noop();

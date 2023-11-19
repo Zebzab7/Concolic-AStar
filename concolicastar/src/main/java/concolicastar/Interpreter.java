@@ -129,7 +129,6 @@ public class Interpreter {
             if (oprString.equals("if") || oprString.equals("ifz")) {
                 Number numIndex = (Number) bytecode.get("target");
                 int targetIndex = numIndex.intValue();
-
                 // Add a jump from target to start of if
                 jumps.put(targetIndex, i);
 
@@ -137,8 +136,11 @@ public class Interpreter {
                 String targetOpr = (String) target.get("opr");
 
                 //TODO: Consider if there are other cases where this somehow is true?
-                // there is a goto at target-1, it must be a loop
-                if (targetOpr.equals("goto")) {
+                
+                // IF there is a goto at target-1 AND it goes backwards THEN it must be a loop
+                Number numTarget = (Number) target.get("target");
+                int targetTarget = numTarget.intValue();
+                if (targetOpr.equals("goto") && targetTarget < targetIndex) {
                     branches.put(i, "loop");
                 } else {
                     branches.put(i, "if");
