@@ -191,38 +191,18 @@ public class Operations {
         }else{
             //long
         }
+        BoolExpr resBool = ctx.mkBool(result);
         switch(condition) {
             case "gt":
-                if (result) {
-                    return ctx.mkGt(expr1, expr2);
-                } else {
-                    return ctx.mkLe(expr1, expr2);
-                    
-                }
+                return (BoolExpr) ctx.mkITE(resBool, ctx.mkGt(expr1, expr2),ctx.mkLe(expr1, expr2));
             case "ge":
-                if (result) {
-                    return ctx.mkGe(expr1, expr2);
-                } else {
-                    return ctx.mkLt(expr1, expr2);
-                }
+                return (BoolExpr) ctx.mkITE(resBool, ctx.mkGe(expr1, expr2),ctx.mkLt(expr1, expr2));
             case "lt":
-                if (result) {
-                    return ctx.mkLt(expr1, expr2);
-                } else {
-                    return ctx.mkGe(expr1, expr2);
-                }
+                return (BoolExpr) ctx.mkITE(resBool, ctx.mkLt(expr1, expr2),ctx.mkGe(expr1, expr2));
             case "le":
-                if (result) {
-                    return ctx.mkLe(expr1, expr2);
-                } else {
-                    return ctx.mkGt(expr1, expr2);
-                }
+                return (BoolExpr) ctx.mkITE(resBool, ctx.mkLe(expr1, expr2),ctx.mkGt(expr1, expr2));
             case "eq":
-                if (result) {
-                    return ctx.mkEq(expr1, expr2);
-                } else {
-                    return ctx.mkNot(ctx.mkEq(expr1, expr2));
-                }
+                return (BoolExpr) ctx.mkITE(resBool, ctx.mkEq(expr1, expr2),ctx.mkNot(ctx.mkLe(expr1, expr2)));
             // case "ne":
                 // return ctx.mkNot(expr1, expr2);
             default:
