@@ -1,4 +1,4 @@
-package main.java.banking_system;
+package banking_system;
 
 public class ResourceManager {
     public void manageResource(User user, Permission permission) {
