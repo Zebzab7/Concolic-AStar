@@ -1,6 +1,9 @@
 package concolicastar;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.json.simple.JSONObject;
 
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BoolExpr;
@@ -14,12 +17,74 @@ public class ProgramStack {
     int pc;
     BoolExpr boolExpr;
 
+    HashMap<Integer, Integer> jumps;
+    HashMap<Integer, String> branches;
+
+    // Stores whether an expression has been created for a given variable for each instruction
+    ArrayList<Boolean> expressionCreatedVector;
+
     public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc, BoolExpr boolExpr) {
         this.lv = lv;
         this.op = op;
         this.am = am;
         this.pc = pc;
         this.boolExpr = boolExpr;
+    }
+
+    public void initializeBranchesAndLoops() {
+        jumps = new HashMap<Integer, Integer>();
+        branches = new HashMap<Integer, String>();
+        Bytecode bc = Interpreter.findMethod(am);
+        for (int i = 0; i < bc.getBytecode().size(); i++) {
+            JSONObject bytecode = (JSONObject) bc.getBytecode().get(i);
+            String oprString = (String) bytecode.get("opr");
+            if (oprString.equals("if") || oprString.equals("ifz")) {
+                Number numIndex = (Number) bytecode.get("target");
+                int targetIndex = numIndex.intValue();
+                // Add a jump from target to start of if
+                jumps.put(targetIndex, i);
+
+                JSONObject target = (JSONObject) bc.getBytecode().get(targetIndex-1);
+                String targetOpr = (String) target.get("opr");
+
+                //TODO: Consider if there are other cases where this somehow is true?
+
+                // IF there is a goto at target-1 AND it jumps backwards THEN it must be a loop
+                // IF there is one and it g fjumpsrwards, it must an if-else
+                // ELSE it must be an if
+                Number numTarget = (Number) target.get("target");
+                int targetTarget = numTarget.intValue();
+                if (targetOpr.equals("goto") && targetTarget < targetIndex) {
+                    branches.put(i, "loop");
+                } else if (targetOpr.equals("goto") && targetTarget > targetIndex) {
+                    branches.put(i, "if-else");
+                } else {
+                    branches.put(i, "if");
+                }
+            }
+        }
+        System.out.println("Initializing branches and loops");
+        System.out.println("Branches: " + branches.toString());
+        System.out.println("Jumps: " + jumps.toString());
+    }
+
+    public void initializeBitVector(Bytecode bc) {
+        expressionCreatedVector = new ArrayList<Boolean>();
+        for (int i = 0; i < bc.getBytecode().size(); i++) {
+            expressionCreatedVector.add(false);
+        }
+        System.out.println("Initializing bit vector");
+        System.out.println("Bitvector: " + expressionCreatedVector.toString());
+    }
+
+    public HashMap<Integer, String> getBranches() {
+        return branches;
+    }
+    public HashMap<Integer, Integer> getJumps() {
+        return jumps;
+    }
+    public ArrayList<Boolean> getExpressionCreatedVector() {
+        return expressionCreatedVector;
     }
 
     public Stack getLv() {
@@ -110,7 +175,6 @@ class Element {
         return "Type: "+type+" Value: "+value + " SymbolicValue: "+symbolicValue;
     }
 }
-
 
 class Stack {
     public Element element;

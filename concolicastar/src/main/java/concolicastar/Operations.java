@@ -118,8 +118,8 @@ public class Operations {
         int res = value.intValue() + incrAmount.intValue();
         Element elCopy = new Element(el.getType(), el.getValue(), el.getSymbolicValue());
 
-        stack.getOp().pop();
-        stack.getOp().push(elCopy);
+        // stack.getOp().pop();
+        // stack.getOp().push(elCopy);
         el.setValue(res);
         return stack;
     }
@@ -138,24 +138,20 @@ public class Operations {
         Element el1 = (Element) stack.getOp().pop();
         Number target = (Number) bc.get("target");
 
-        // get the target here to check whethew it's a loop or not
-        Boolean flag =false;
-        for (Integer opr : Interpreter.branches.keySet()){
-            if (Interpreter.branches.get(opr).equals("loop")) {
-                // i-->target
-                if (Interpreter.jumps.get(target).equals(opr)) {
-                    flag = true;
-                }
-            }
-        }
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
-            if (!flag) {
-                // do concolic again
-                stack.addBoolExpr(generateBoolExpression(el1,el2,oprString,res));
+
+            // If instruction is condition for a loop, then we only create a new expression the first time
+            // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
+            if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
+                stack.getExpressionCreatedVector().set(stack.getPc(), true);
+                stack.addBoolExpr(generateIfElseBoolExpression(el1,el2,oprString,res));
             }
-            // stack.addBoolExpr(generateBoolExpression(el1,el2,oprString,res));
+            // } 
+            // else {
+            //     stack.addBoolExpr(generateIfElseBoolExpression(el1,el2,oprString,res));
+            // }
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                
@@ -175,7 +171,17 @@ public class Operations {
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicExecution.doCompare(oprString, el, zero);
-            stack.addBoolExpr(generateBoolExpression(el,zero,oprString,res));
+            
+            // If instruction is condition for a loop, then we only create a new expression the first time
+            // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
+            if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
+                stack.getExpressionCreatedVector().set(stack.getPc(), true);
+                stack.addBoolExpr(generateIfElseBoolExpression(el,zero,oprString,res));
+            }
+            // } 
+            // else {
+            //     stack.addBoolExpr(generateIfElseBoolExpression(el,zero,oprString,res));
+            // }
             if (res) {
                 stack.setPc(target-1);
             }                                                                    
@@ -183,7 +189,7 @@ public class Operations {
         return stack;
     }
 
-    public static BoolExpr generateBoolExpression(Element e1, Element e2, String condition, boolean result)  {
+    public static BoolExpr generateIfElseBoolExpression(Element e1, Element e2, String condition, boolean result)  {
         ArithExpr<?> expr1 = (ArithExpr<?>) e1.getSymbolicValue();
         ArithExpr<?> expr2 = (ArithExpr<?>) e2.getSymbolicValue();
 

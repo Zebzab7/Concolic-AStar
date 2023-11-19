@@ -754,15 +754,15 @@
             ]
           },
           {
-            "index": 10,
-            "type": "same"
-          },
-          {
             "index": 12,
             "type": "same"
           },
           {
-            "index": 14,
+            "index": 16,
+            "type": "same"
+          },
+          {
+            "index": 18,
             "type": "same"
           }
         ],
@@ -791,7 +791,7 @@
             "offset": 3,
             "opr": "ifz",
             "condition": "le",
-            "target": 14
+            "target": 18
           },
           {
             "offset": 6,
@@ -811,10 +811,16 @@
             "offset": 9,
             "opr": "if",
             "condition": "le",
-            "target": 10
+            "target": 12
           },
           {
             "offset": 12,
+            "opr": "load",
+            "type": "int",
+            "index": 1
+          },
+          {
+            "offset": 13,
             "opr": "push",
             "value": {
               "type": "integer",
@@ -822,18 +828,30 @@
             }
           },
           {
-            "offset": 13,
+            "offset": 14,
+            "opr": "binary",
+            "type": "int",
+            "operant": "mul"
+          },
+          {
+            "offset": 15,
             "opr": "store",
             "type": "int",
             "index": 1
           },
           {
-            "offset": 14,
+            "offset": 16,
             "opr": "goto",
-            "target": 12
+            "target": 16
           },
           {
-            "offset": 17,
+            "offset": 19,
+            "opr": "load",
+            "type": "int",
+            "index": 1
+          },
+          {
+            "offset": 20,
             "opr": "push",
             "value": {
               "type": "integer",
@@ -841,30 +859,36 @@
             }
           },
           {
-            "offset": 18,
+            "offset": 21,
+            "opr": "binary",
+            "type": "int",
+            "operant": "mul"
+          },
+          {
+            "offset": 22,
             "opr": "store",
             "type": "int",
             "index": 1
           },
           {
-            "offset": 19,
+            "offset": 23,
             "opr": "incr",
             "index": 0,
             "amount": -1
           },
           {
-            "offset": 22,
+            "offset": 26,
             "opr": "goto",
             "target": 2
           },
           {
-            "offset": 25,
+            "offset": 29,
             "opr": "load",
             "type": "int",
             "index": 1
           },
           {
-            "offset": 26,
+            "offset": 30,
             "opr": "return",
             "type": "int"
           }

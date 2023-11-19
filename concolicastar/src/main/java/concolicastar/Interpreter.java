@@ -11,9 +11,6 @@ public class Interpreter {
 
     public static int count = 0;
 
-    static HashMap<Integer, Integer> jumps;
-    static HashMap<Integer, String> branches;
-
     private static Context ctx;
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     static BootstrapMethods bootstrapMethods;
@@ -41,11 +38,6 @@ public class Interpreter {
      */
     public static ProgramStack interpretFunction(AbsoluteMethod am, Element[] args) {
         count = 0;
-        initializeBranchesAndLoops(am);
-
-        System.out.println("Branches and jumps: ");
-        System.out.println(branches);
-        System.out.println(jumps);
         return interpret(am, args);
     }
 
@@ -61,6 +53,8 @@ public class Interpreter {
         }
         Bytecode bc = findMethod(am);
         ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, null);
+        stack.initializeBranchesAndLoops();
+        stack.initializeBitVector(bc);
         for (Element el : args) {
             // System.out.println(el.toString());
             stack.getLv().push(el);
@@ -119,41 +113,7 @@ public class Interpreter {
         }
     }
 
-    public static void initializeBranchesAndLoops(AbsoluteMethod am) {
-        jumps = new HashMap<Integer, Integer>();
-        branches = new HashMap<Integer, String>();
-        Bytecode bc = findMethod(am);
-        for (int i = 0; i < bc.getBytecode().size(); i++) {
-            JSONObject bytecode = (JSONObject) bc.getBytecode().get(i);
-            String oprString = (String) bytecode.get("opr");
-            if (oprString.equals("if") || oprString.equals("ifz")) {
-                Number numIndex = (Number) bytecode.get("target");
-                int targetIndex = numIndex.intValue();
-                // Add a jump from target to start of if
-                jumps.put(targetIndex, i);
-
-                JSONObject target = (JSONObject) bc.getBytecode().get(targetIndex-1);
-                String targetOpr = (String) target.get("opr");
-
-                //TODO: Consider if there are other cases where this somehow is true?
-                
-                // IF there is a goto at target-1 AND it goes backwards THEN it must be a loop
-                Number numTarget = (Number) target.get("target");
-                int targetTarget = numTarget.intValue();
-                if (targetOpr.equals("goto") && targetTarget < targetIndex) {
-                    branches.put(i, "loop");
-                } else {
-                    branches.put(i, "if");
-                }
-            }
-        }
-    }
-
     public static Context getCtx() {
         return ctx;
-    }
-
-    public void loadFiles() {
-        
     }
 }

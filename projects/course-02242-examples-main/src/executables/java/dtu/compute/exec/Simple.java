@@ -59,12 +59,12 @@ public class Simple {
 
     @Case 
     public static int ifInLoop(int n) {
-        int x = 0;
+        int x = 1;
         while (n > 0) {
             if (n > 10) {
-                x = 2;
+                x *= 2;
             } else {
-                x = 3;
+                x *= 3;
             }
             n--;
         }

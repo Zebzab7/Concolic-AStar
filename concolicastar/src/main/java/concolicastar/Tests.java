@@ -81,7 +81,6 @@ public class Tests {
         }
         BoolExpr fullExpr = null;
         Solver solver = ctx.mkSolver();
-        solver.add(ctx.mkEq(elements.get(0).getSymbolicValue(), ctx.mkInt(3)));
         int pathsExplored = 0;
         while (true) {
             Status satisfiable = solver.check();
@@ -117,7 +116,6 @@ public class Tests {
 
             ProgramStack res = Interpreter.interpretFunction(am, args);
             BoolExpr resExpr = ctx.mkNot((BoolExpr) res.getBoolExpr());
-            System.out.println("resZEcpr"+resExpr);
             if (fullExpr == null) {
                 fullExpr = resExpr;
                 solver.add(fullExpr);
@@ -128,7 +126,6 @@ public class Tests {
             System.out.println("\nRESULT:");
             System.out.println("Solver: " + solver);
             pathsExplored++;
-            break;
         }
         System.out.println(pathsExplored + " paths explored!\n");
         ctx.close();
