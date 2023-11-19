@@ -1,5 +1,4 @@
 package banking_system;
-
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -12,7 +11,7 @@ public class AppTest
     /**
      * Rigorous Test :-)
      */
-    @Test
+    // @SimpleExamples
     public void shouldAnswerWithTrue()
     {
         assertTrue( true );

@@ -1,5 +1,4 @@
 package banking_system;
-
 public class ResourceManager {
     public void manageResource(User user, Permission permission) {
         if ("admin".equals(user.getRole())) {

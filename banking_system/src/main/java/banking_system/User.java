@@ -1,5 +1,4 @@
 package banking_system;
-
 public class User {
     private String username;
     private String role;
