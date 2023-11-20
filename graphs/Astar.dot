@@ -1,0 +1,4 @@
+digraph G{ 
+ start ->0 [label="0"];
+
+}

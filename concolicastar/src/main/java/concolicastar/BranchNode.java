@@ -2,24 +2,30 @@ package concolicastar;
 
 import java.util.ArrayList;
 
+import com.microsoft.z3.BoolExpr;
+
 public class BranchNode implements Comparable<BranchNode> {
 
     // While? If? For?
-    String type;
+    private String type;
 
-    AbsoluteMethod am;
-    int instructionIndex;
+    private AbsoluteMethod am;
+    private int instructionIndex;
 
-    ArrayList<BranchNode> parents;
-    ArrayList<BranchNode> children;
-    int cost;
+    private ArrayList<BranchNode> parents;
+    private BranchNode trueChild;
+    private BranchNode falseChild;
+    private int cost;
+    
+    BoolExpr condition;
 
     public BranchNode(String type, AbsoluteMethod am, int instructionIndex, int cost) {
         this.type = type;
         this.am = am;
         this.instructionIndex = instructionIndex;
         parents = null;
-        children = null;
+        trueChild = null;
+        falseChild = null;
         this.cost = cost;
     }
 
@@ -28,22 +34,40 @@ public class BranchNode implements Comparable<BranchNode> {
         this.am = am;
         this.instructionIndex = instructionIndex;
         parents = null;
-        children = null;
+        trueChild = null;
+        falseChild = null;
         cost = 0;
     }
 
-    public void addChild(BranchNode child) {
-        if (children == null) {
-            children = new ArrayList<BranchNode>();
-        }
-        children.add(child);
+    public void addTrueChild(BranchNode child) {
+        trueChild = child;
+    }
+    public ArrayList<BranchNode> getChildren(){
+        ArrayList<BranchNode> children = new ArrayList<>();
+        children.add(trueChild);
+        children.add(falseChild);
+        return children;
+    }
+    public void addFalseChild(BranchNode child) {
+        falseChild = child;
+    }
+
+    public BranchNode getTrueChild() {
+        return trueChild;
+    }
+    public BranchNode getFalseChild() {
+        return falseChild;
+    }
+
+    public void setTrueChild(BranchNode trueChild) {
+        this.trueChild = trueChild;
+    }
+    public void setFalseChild(BranchNode falseChild) {
+        this.falseChild = falseChild;
     }
 
     public AbsoluteMethod getAm() {
         return am;
-    }
-    public ArrayList<BranchNode> getChildren() {
-        return children;
     }
     public int getInstructionIndex() {
         return instructionIndex;
@@ -60,13 +84,13 @@ public class BranchNode implements Comparable<BranchNode> {
     public void setAm(AbsoluteMethod am) {
         this.am = am;
     }
-    public void setChildren(ArrayList<BranchNode> children) {
-        this.children = children;
-    }
     public void setInstructionIndex(int instructionIndex) {
         this.instructionIndex = instructionIndex;
     }
     public void addParent(BranchNode parent) {
+        if (parents == null) {
+            parents = new ArrayList<BranchNode>();
+        }
         this.parents.add(parent);
     }
     public void setType(String type) {

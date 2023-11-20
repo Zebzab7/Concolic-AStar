@@ -26,12 +26,21 @@ public class MakeGraph{
         }
         try{
             FileWriter fw = new FileWriter(s);
-            fw.write("diagraph G \n ");
+            fw.write("digraph G{ \n ");
             int counter = 0;
-            for (BranchNode branch : startingBranch.getChildren()) {
-                fw.write("start ->"+ "node:" + counter + ";");
-                
+            BranchNode bfalse = startingBranch.getFalseChild();
+            BranchNode btrue = startingBranch.getTrueChild();
+            if(btrue!=null){
+                fw.write("start ->" + counter + " [label=\"" + btrue.getCost() +"\"];" + "\n");
+                counter ++;
+                getChildren(btrue,counter,fw);
             }
+            if(bfalse !=null) {
+                fw.write("start ->" + counter + " [label=\"" + bfalse.getCost() +"\"];" + "\n");
+                counter++;
+                getChildren(bfalse,counter,fw);
+            }
+            fw.write("\n}");
             fw.close();
         }catch(IOException io){
             System.out.println("Error in writing to file");
@@ -39,15 +48,20 @@ public class MakeGraph{
         }
         
     }
-    public void getChildren(BranchNode branch,int counter,FileWriter fw) throws IOException{
-        if(branch.getChildren()==null){
-            return;
-        }
+    public static void getChildren(BranchNode branch,int counter,FileWriter fw) throws IOException{
         int num = counter;
-        for (BranchNode b: branch.getChildren()) {
-        counter++;
-            fw.write("node:" + num + "-> node:" + counter + ";");
-            getChildren(b,counter,fw);
+
+        BranchNode btrue = branch.getTrueChild();
+        BranchNode bfalse = branch.getFalseChild();
+        if (btrue != null) {
+            counter++;
+            fw.write("" + num + "->" + counter + " [label=\"" + btrue.getCost() +"\"];" + "\n");
+            getChildren(btrue,counter,fw);
+        }
+        if (bfalse != null) {
+            counter ++;
+            fw.write("" + num + "->" + counter + " [label=\""+ bfalse.getCost() +"\"];" + "\n");
+            getChildren(bfalse,counter,fw);
         }
         return;
     }

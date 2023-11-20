@@ -97,7 +97,7 @@ public class Pathcreator {
     }
 
     // Traverse backwards, passing in which branch we are searching for
-    public void buildHeuristicMap(BranchNode targetNode) {
+    public BranchNode buildHeuristicMap(BranchNode targetNode) {
         AbsoluteMethod am = targetNode.getAm();
 
         // Find the branch we are looking for
@@ -121,84 +121,130 @@ public class Pathcreator {
             Bytecode bc = Interpreter.findMethod(am);
             JSONArray currentBytecode = (JSONArray) bc.getBytecode();
 
+            // ArrayList<BranchNode> foundBranches = null;
             ArrayList<BranchNode> foundBranches 
-                = searchMethodInvocations(cost, currentAM, currentBytecode, instructionIndex, currentBranch);
+                = searchMethodInvocations(cost, currentAM, currentBytecode, instructionIndex-1, currentBranch);
+                
+            if (foundBranches == null) {
+                MakeGraph.generateGraph(currentBranch);
+                System.out.println(currentBranch);
+                return currentBranch;
+            }
 
             for (BranchNode branchNode : foundBranches) {
                 branchStack.add(branchNode);
             }
-
-            BranchNode startforASatr = null;
-            if (foundBranches.size() == 0) {
-                startforASatr = branchStack.get(branchStack.size()-1);
-                break;
-            }
         }
-        // aStar(startforASatr,currentBranch);
-        System.out.println("here");
-        MakeGraph.generateGraph(startingBranch);
-        System.out.println(startingBranch.toString());
+        return null;
     }
     
     public ArrayList<BranchNode> searchMethodInvocations(int cost, AbsoluteMethod am, 
         JSONArray currentBytecode, int instructionIndex, BranchNode currentBranch) {
         for (int i = instructionIndex; i >= 0; i--) {
             cost++;
-            if (jumps.containsKey(am) && jumps.get(am).containsKey(instructionIndex)) {
+            //Has the possible jump or is the top of an If statement
 
-                // Find the branch, update parent and child reference and cost, then push onto stack
+            if (((JSONObject)currentBytecode.get(i)).get("opr").equals("goto")) {
+                Number numIndex = (Number) ((JSONObject)currentBytecode.get(i)).get("target");
+                int targetIndex = numIndex.intValue();
+                if (targetIndex > i) {
+
+                    // If we are jumping forwards, we must be in an if-else
+                    // Find the branch, update parent and child reference and cost, then push onto stack
+                    for (BranchNode foundBranch : branches.get(am)) {
+                        if (foundBranch.getInstructionIndex() == i) {
+                            String type = (String)((JSONObject)currentBytecode.get(i)).get("opr");
+                            
+                            currentBranch.addParent(foundBranch);
+                            if (foundBranch.getCost() > cost) {
+                                foundBranch.setCost(cost);
+                                foundBranch.addFalseChild(currentBranch);
+                            }
+                            return new ArrayList<BranchNode>(Arrays.asList(foundBranch));
+                        }
+                    }
+                }
+            }
+
+            // If and loops
+            // jumps.containsKey(am) && jumps.get(am).containsKey(i) 
+                // || ((JSONObject)currentBytecode.get(i)).get("opr").equals("if")
+                // || ((JSONObject) currentBytecode.get(i)).get("opr").equals("ifz") --
+                // jumps.containsKey(am) && jumps.get(am).containsKey(i)  || currentBranch.getType().equals("if/ifz/if_else")
+            if (jumps.containsKey(am) && jumps.get(am).containsKey(i) 
+                || ((JSONObject)currentBytecode.get(i)).get("opr").equals("if")
+                || ((JSONObject) currentBytecode.get(i)).get("opr").equals("ifz")) {
+
+                    // Find the branch, update parent and child reference and cost, then push onto stack
                 for (BranchNode foundBranch : branches.get(am)) {
-                    if (foundBranch.getInstructionIndex() == instructionIndex) {
-                        foundBranch.children.add(currentBranch);
-                        currentBranch.parents.add(foundBranch);
+                    if (foundBranch.getInstructionIndex() == i) {
+                        String type = (String)((JSONObject)currentBytecode.get(i)).get("opr");
+                        
+
+                        currentBranch.addParent(foundBranch);
                         if (foundBranch.getCost() > cost) {
                             foundBranch.setCost(cost);
+
+                            // IF loop or just "if" then:
+                            foundBranch.addTrueChild(currentBranch);
                         }
+                        System.out.println("Here");
                         return new ArrayList<BranchNode>(Arrays.asList(foundBranch));
                     }
                 }
             }
         }
 
+        // If we reach here, we have not found a branch, so we must search for method invocations¨
+        if (!methodInvocations.containsKey(am)) {
+            return null;
+        }
         ArrayList<BranchNode> methodBranches = new ArrayList<BranchNode>();
-        // If we reach here, we have not found a branch, so we must search for method invocations
-        for (AbsoluteMethod aMethod : methodInvocations.keySet()) {
+        for (Reference ref : methodInvocations.get(am)) {
             ArrayList<BranchNode> branches 
-                = searchMethodInvocations(cost, aMethod, currentBytecode, instructionIndex, currentBranch);
+                = searchMethodInvocations(cost, ref.getAM(), currentBytecode, ref.getInstruction(), currentBranch);
             methodBranches.addAll(branches);
         }
         return methodBranches;
     }
 
-    // public BoolExpr aStar(BranchNode startNode, BranchNode targetNode) {
-    //     buildHeuristicMap(targetNode);
-    //     Context ctx = Interpreter.getCtx();
-    //     BoolExpr expr = ctx.mkTrue();
+    public BoolExpr aStar(BranchNode startNode, BranchNode targetNode) {
+        buildHeuristicMap(targetNode);
+        Context ctx = Interpreter.getCtx();
+        BoolExpr expr = ctx.mkTrue();
 
-    //     PriorityQueue<BranchNode> openList = new PriorityQueue<>();
-    //     PriorityQueue<BranchNode> closedList = new PriorityQueue<>();
+        PriorityQueue<BranchNode> openList = new PriorityQueue<>();
+        PriorityQueue<BranchNode> closedList = new PriorityQueue<>();
         
-    //     openList.add(startNode);
+        openList.add(startNode);
+        if (openList.isEmpty()){
+            return null;
+        }
 
-    //     if (openList.isEmpty()){
-    //         return null;
-    //     }
+        while (!openList.isEmpty()){
+            BranchNode n = openList.poll();
+            if (n.equals(targetNode)){
+                System.out.println("Target node reached!");
+            }
 
-        
-        
-    //     if (startNode.children.size()>0) {
-    //         int subCost = 0;
-    //         for (BranchNode child : startNode.children) {
-    //             // check the cost
-    //             openList.add(child);
-    //             if () {
-    //                 BoolExpr addExpr = ctx.mkAnd();
-    //             }
-    //         }
-    //     }
-        
-    //     return expr;
-    // }
+            ArrayList<BranchNode> children = n.getChildren();
+            int max = 0;
+            if (!children.isEmpty()) {
+                for (BranchNode child : children) {
+                    // 
+                    openList.add(child);
+                    if (child.getCost() < Integer.MAX_VALUE) {
+                       BoolExpr addTrueChild = ctx.mkBool(true);
+                       BoolExpr exprTrue = ctx.mkAnd(expr,addTrueChild);
+                    }else{
+                        
+                    }
+                }
+            }
+            
+        }
+        return expr;
+    }
 
     //Find paths to an if or ifz condition
     public HashMap<Integer,Integer> findIfPaths(int size, AbsoluteMethod am, Bytecode bc){

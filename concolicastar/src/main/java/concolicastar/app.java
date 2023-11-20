@@ -1,6 +1,9 @@
 package concolicastar;
 
 import java.util.ArrayList;
+
+import com.microsoft.z3.Context;
+
 import java.time.Instant;
 
 public class App 
@@ -12,10 +15,13 @@ public class App
         files = Folders.findFiles("projects/course-examples/json",".json");
 
         Interpreter interpreter = new Interpreter(files);
+        interpreter.setContext(new Context());
 
         Pathcreator pc = new Pathcreator();
-        pc.buildHeuristicMap(new BranchNode("if", new AbsoluteMethod("Simple", "ifInLoop"), 6, 0));
-        
+        BranchNode targetNode = new BranchNode("if", new AbsoluteMethod("Simple", "ifInLoop"), 6, 0);
+        BranchNode startNode = pc.buildHeuristicMap(targetNode);
+        pc.aStar(startNode, targetNode);
+
         // interpreter.interpret("method");
         //Tests.testList(interpreter);
         Instant end = Instant.now();

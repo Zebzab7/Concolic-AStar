@@ -63,8 +63,36 @@ public class Simple {
         while (n > 0) {
             if (n > 10) {
                 x *= 2;
+                if(x > 0) {
+                    x *= 5;
+                }
             } else {
                 x *= 3;
+                if(x > 0) {
+                    x *= 6;
+                }
+            }
+            n--;
+        }
+        return x;
+    }
+
+    @Case 
+    public static int ifInLoop2(int n) {
+        int a = 10;
+        int b = n*2;
+        int x = a + b;
+        while (n > 0) {
+            if (n > 10) {
+                x *= 2;
+                if(x > 0) {
+                    x *= 5;
+                }
+            } else {
+                x *= 3;
+                if(x > 0) {
+                    x *= 6;
+                }
             }
             n--;
         }
