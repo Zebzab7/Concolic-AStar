@@ -85,10 +85,11 @@ public class Pathcreator {
                             branches.get(bc.getAm()).add(new BranchNode("loop", bc.getAm(), instruction, Integer.MAX_VALUE));
                         } else if ( targetTarget > targetIndex) {
                             branches.get(bc.getAm()).add(new BranchNode("if-else", bc.getAm(), instruction, Integer.MAX_VALUE));
-                        } else {
-                            branches.get(bc.getAm()).add(new BranchNode("if", bc.getAm(), instruction, Integer.MAX_VALUE));
-                        } 
-                    }
+                        }
+                    } else {
+                        branches.get(bc.getAm()).add(new BranchNode("if", bc.getAm(), instruction, Integer.MAX_VALUE));
+                    } 
+                    
                 }
                 instruction++;
             }
@@ -99,6 +100,11 @@ public class Pathcreator {
     // Traverse backwards, passing in which branch we are searching for
     public BranchNode buildHeuristicMap(BranchNode targetNode) {
         AbsoluteMethod am = targetNode.getAm();
+        
+        System.out.println("Branches for this method: ");
+        for (BranchNode branch : branches.get(am)) {
+            System.out.println(branch);
+        }
 
         // Find the branch we are looking for
         ArrayList<BranchNode> branchStack = new ArrayList<>();
@@ -107,6 +113,7 @@ public class Pathcreator {
                 targetNode = branch;
                 targetNode.setCost(0);
                 branchStack.add(branch);
+                System.out.println("Found target node: " + targetNode);
             }
         }
 
@@ -158,7 +165,7 @@ public class Pathcreator {
                             currentBranch.addParent(foundBranch);
                             if (foundBranch.getCost() > cost) {
                                 foundBranch.setCost(cost);
-                                foundBranch.addFalseChild(currentBranch);
+                                foundBranch.setFalseChild(currentBranch);
                             }
                             return new ArrayList<BranchNode>(Arrays.asList(foundBranch));
                         }
@@ -186,9 +193,8 @@ public class Pathcreator {
                             foundBranch.setCost(cost);
 
                             // IF loop or just "if" then:
-                            foundBranch.addTrueChild(currentBranch);
+                            foundBranch.setTrueChild(currentBranch);
                         }
-                        System.out.println("Here");
                         return new ArrayList<BranchNode>(Arrays.asList(foundBranch));
                     }
                 }
@@ -209,39 +215,39 @@ public class Pathcreator {
     }
 
     public BoolExpr aStar(BranchNode startNode, BranchNode targetNode) {
-        buildHeuristicMap(targetNode);
+        // buildHeuristicMap(targetNode);
         Context ctx = Interpreter.getCtx();
         BoolExpr expr = ctx.mkTrue();
 
-        PriorityQueue<BranchNode> openList = new PriorityQueue<>();
-        PriorityQueue<BranchNode> closedList = new PriorityQueue<>();
+        PriorityQueue<BranchNode> frontier = new PriorityQueue<>();
         
-        openList.add(startNode);
-        if (openList.isEmpty()){
+        frontier.add(startNode);
+        if (frontier.isEmpty()){
             return null;
         }
 
-        while (!openList.isEmpty()){
-            BranchNode n = openList.poll();
+        int iterations = 0;
+
+        while (!frontier.isEmpty()){
+            BranchNode n = frontier.poll();
             if (n.equals(targetNode)){
-                System.out.println("Target node reached!");
+                System.out.println("Target node reached after " + iterations + " iterations");
+                System.out.println("Final expression: " + expr.toString() + "\n");
+                break;
             }
 
-            ArrayList<BranchNode> children = n.getChildren();
             int max = 0;
+            ArrayList<BranchNode> children = n.getChildren();
             if (!children.isEmpty()) {
                 for (BranchNode child : children) {
-                    // 
-                    openList.add(child);
+                    frontier.add(child);
                     if (child.getCost() < Integer.MAX_VALUE) {
                        BoolExpr addTrueChild = ctx.mkBool(true);
                        BoolExpr exprTrue = ctx.mkAnd(expr,addTrueChild);
-                    }else{
-                        
                     }
                 }
             }
-            
+            iterations++;
         }
         return expr;
     }

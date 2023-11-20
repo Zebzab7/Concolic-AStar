@@ -18,7 +18,8 @@ public class App
         interpreter.setContext(new Context());
 
         Pathcreator pc = new Pathcreator();
-        BranchNode targetNode = new BranchNode("if", new AbsoluteMethod("Simple", "ifInLoop"), 6, 0);
+        BranchNode targetNode 
+            = new BranchNode("if", new AbsoluteMethod("Simple", "ifInLoop2"), 31, 0);
         BranchNode startNode = pc.buildHeuristicMap(targetNode);
         pc.aStar(startNode, targetNode);
 

@@ -39,31 +39,27 @@ public class BranchNode implements Comparable<BranchNode> {
         cost = 0;
     }
 
-    public void addTrueChild(BranchNode child) {
-        trueChild = child;
-    }
     public ArrayList<BranchNode> getChildren(){
         ArrayList<BranchNode> children = new ArrayList<>();
-        children.add(trueChild);
-        children.add(falseChild);
+        if (trueChild != null) {
+            children.add(trueChild);
+        }
+        if (falseChild != null) {
+            children.add(falseChild);
+        }
         return children;
     }
-    public void addFalseChild(BranchNode child) {
+    public void setTrueChild(BranchNode child) {
+        trueChild = child;
+    }
+    public void setFalseChild(BranchNode child) {
         falseChild = child;
     }
-
     public BranchNode getTrueChild() {
         return trueChild;
     }
     public BranchNode getFalseChild() {
         return falseChild;
-    }
-
-    public void setTrueChild(BranchNode trueChild) {
-        this.trueChild = trueChild;
-    }
-    public void setFalseChild(BranchNode falseChild) {
-        this.falseChild = falseChild;
     }
 
     public AbsoluteMethod getAm() {
