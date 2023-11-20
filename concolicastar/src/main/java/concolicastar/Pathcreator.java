@@ -5,36 +5,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import java.util.PriorityQueue;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import com.microsoft.z3.Expr;
 
 public class Pathcreator {
 
     ArrayList<Bytecode> bytecodes;
     
     // Store branches
-    HashMap<AbsoluteMethod,ArrayList<Branch>> branches;
+    HashMap<AbsoluteMethod,ArrayList<BranchNode>> branches;
     HashMap<AbsoluteMethod,HashMap<Integer,Integer>> jumps;
 
     // Stores the method invoked, as well as a reference to the location from which it was invoked
     HashMap<AbsoluteMethod,ArrayList<Reference>> methodInvocations = new HashMap<AbsoluteMethod,ArrayList<Reference>>();
 
     public Pathcreator() {
-        // for(JsonFile file : files) {
-        //     JSONArray methods = file.getMethods();
-        //     for (Object obj : methods) {
-        //         JSONObject method = (JSONObject) obj;
-        //         String methodName = (String) method.get("name");
-        //         JSONObject code = (JSONObject) method.get("code");
-        //         JSONArray args = (JSONArray) method.get("params");
-        //         Bytecode bc = new Bytecode(file.getFileName(), methodName, (JSONArray) code.get("bytecode"), args);
-        //         bytecodes.add(bc);
-        //     }
-        // }
-
         bytecodes = Interpreter.getBytecodes();
         jumps = new HashMap<AbsoluteMethod, HashMap<Integer,Integer>>();
-        branches = new HashMap<AbsoluteMethod, ArrayList<Branch>>();
+        branches = new HashMap<AbsoluteMethod, ArrayList<BranchNode>>();
         findMethodsContainingMethods();
         System.out.println(methodstacktoString());
     }
@@ -43,10 +37,24 @@ public class Pathcreator {
         int instruction = 0;
         for(Bytecode bc : bytecodes){
             for(Object obj : bc.getBytecode()){
-                instruction++;
                 JSONObject bytecode = (JSONObject) obj;
                 //Asuming that all invokestatic are methods and none are other things.
                 
+                // Initializes invocation pointers
+                if(bytecode.get("opr").equals("invoke") && bytecode.get("access").equals("static")){
+                    JSONObject method = (JSONObject) bytecode.get("method");
+                    String className = (String) ((JSONObject) method.get("ref")).get("name");  
+                    String methodName = (String) (method.get("name"));
+                    AbsoluteMethod am = new AbsoluteMethod(className,methodName);
+
+                    //Checks if it exists, if not create new Arraylist object
+                    if(!methodInvocations.containsKey(am)){
+                        methodInvocations.put(am, new ArrayList<>());
+                    }
+                    //adds to methodstack
+                    methodInvocations.get(am).add(new Reference(bc.getAm(),instruction));
+                }
+
                 // initializes jumps and branches 
                 if (bytecode.get("opr").equals("if") || bytecode.get("opr").equals("ifz")) {
                     AbsoluteMethod am = bc.getAm();
@@ -66,7 +74,7 @@ public class Pathcreator {
                     // IF there is one and it jumpsrwards, it must an if-else
                     // ELSE it must be an if
                     if (!branches.containsKey(am)) {
-                        branches.put(am, new ArrayList<Branch>());
+                        branches.put(am, new ArrayList<BranchNode>());
                     }
 
                     if (target.get("opr").equals("goto")){
@@ -74,79 +82,123 @@ public class Pathcreator {
                         Number numTarget = (Number) target.get("target");
                         int targetTarget = numTarget.intValue();
                         if (targetTarget < targetIndex) {
-                            branches.get(bc.getAm()).add(new Branch("loop", bc.getAm(), instruction, Integer.MAX_VALUE));
+                            branches.get(bc.getAm()).add(new BranchNode("loop", bc.getAm(), instruction, Integer.MAX_VALUE));
                         } else if ( targetTarget > targetIndex) {
-                            branches.get(bc.getAm()).add(new Branch("if-else", bc.getAm(), instruction, Integer.MAX_VALUE));
+                            branches.get(bc.getAm()).add(new BranchNode("if-else", bc.getAm(), instruction, Integer.MAX_VALUE));
                         } else {
-                            branches.get(bc.getAm()).add(new Branch("if", bc.getAm(), instruction, Integer.MAX_VALUE));
+                            branches.get(bc.getAm()).add(new BranchNode("if", bc.getAm(), instruction, Integer.MAX_VALUE));
                         } 
                     }
                 }
-                
-                // Initializes invocation pointers
-                if(bytecode.get("opr").equals("invoke") && bytecode.get("access").equals("static")){
-                    JSONObject method = (JSONObject) bytecode.get("method");
-                    String className = (String) ((JSONObject) method.get("ref")).get("name");  
-                    String methodName = (String) (method.get("name"));
-                    AbsoluteMethod am = new AbsoluteMethod(className,methodName);
-
-                    //Checks if it exists, if not create new Arraylist object
-                    if(!methodInvocations.containsKey(am)){
-                        methodInvocations.put(am, new ArrayList<>());
-                    }
-                    //adds to methodstack
-                    methodInvocations.get(am).add(new Reference(bc.getAm(),instruction));
-                }
+                instruction++;
             }
             instruction=0;
         }
     }
 
     // Traverse backwards, passing in which branch we are searching for
-    public void buildHeuristicMap(AbsoluteMethod am, int instructionIndex) {
-        System.out.println("Branches: " + branches.toString());
+    public void buildHeuristicMap(BranchNode targetNode) {
+        AbsoluteMethod am = targetNode.getAm();
+
         // Find the branch we are looking for
-        for (Branch branch : branches.get(am)) {
-            if (branch.getInstructionIndex() == instructionIndex) {
-                branch.setCost(0);
+        ArrayList<BranchNode> branchStack = new ArrayList<>();
+        for (BranchNode branch : branches.get(am)) {
+            if (branch.equals(targetNode)) {
+                targetNode = branch;
+                targetNode.setCost(0);
+                branchStack.add(branch);
             }
         }
-        // HashMap<Reference, Integer> heuristicMap = new HashMap<Reference, Integer>();
-        // methodInvocations.get(am).forEach((ref) -> {
-        //     heuristicMap.put(ref, Integer.MAX_VALUE);
-        // });
-        Bytecode bc = Interpreter.findMethod(am);
-        JSONArray bcArray = (JSONArray) bc.getBytecode();
+
+        BranchNode startingBranch = branchStack.get(0);
         
-        calculateHeuristic(bcArray, instructionIndex, am);
-        System.out.println("Heuristic map: " + branches.toString());
+        int cost = 0;
+        while (branchStack.size() > 0) {
+            BranchNode currentBranch = branchStack.remove(0);
+            int instructionIndex = currentBranch.getInstructionIndex();
+
+            AbsoluteMethod currentAM = currentBranch.getAm();
+            Bytecode bc = Interpreter.findMethod(am);
+            JSONArray currentBytecode = (JSONArray) bc.getBytecode();
+
+            ArrayList<BranchNode> foundBranches 
+                = searchMethodInvocations(cost, currentAM, currentBytecode, instructionIndex, currentBranch);
+
+            for (BranchNode branchNode : foundBranches) {
+                branchStack.add(branchNode);
+            }
+
+            BranchNode startforASatr = null;
+            if (foundBranches.size() == 0) {
+                startforASatr = branchStack.get(branchStack.size()-1);
+                break;
+            }
+        }
+        // aStar(startforASatr,currentBranch);
+        System.out.println("here");
+        MakeGraph.generateGraph(startingBranch);
+        System.out.println(startingBranch.toString());
+    }
+    
+    public ArrayList<BranchNode> searchMethodInvocations(int cost, AbsoluteMethod am, 
+        JSONArray currentBytecode, int instructionIndex, BranchNode currentBranch) {
+        for (int i = instructionIndex; i >= 0; i--) {
+            cost++;
+            if (jumps.containsKey(am) && jumps.get(am).containsKey(instructionIndex)) {
+
+                // Find the branch, update parent and child reference and cost, then push onto stack
+                for (BranchNode foundBranch : branches.get(am)) {
+                    if (foundBranch.getInstructionIndex() == instructionIndex) {
+                        foundBranch.children.add(currentBranch);
+                        currentBranch.parents.add(foundBranch);
+                        if (foundBranch.getCost() > cost) {
+                            foundBranch.setCost(cost);
+                        }
+                        return new ArrayList<BranchNode>(Arrays.asList(foundBranch));
+                    }
+                }
+            }
+        }
+
+        ArrayList<BranchNode> methodBranches = new ArrayList<BranchNode>();
+        // If we reach here, we have not found a branch, so we must search for method invocations
+        for (AbsoluteMethod aMethod : methodInvocations.keySet()) {
+            ArrayList<BranchNode> branches 
+                = searchMethodInvocations(cost, aMethod, currentBytecode, instructionIndex, currentBranch);
+            methodBranches.addAll(branches);
+        }
+        return methodBranches;
     }
 
-    public int calculateHeuristic(JSONArray bytecode, int instructionIndex, AbsoluteMethod am) {
-        return 1;
-        // // If statements and loops should be counted extra 
-        // if (jumps.containsKey(am) && jumps.get(am).containsKey(instructionIndex)) {
-        //     int index = jumps.get(am).get(instructionIndex);
-        //     return 10 + calculateHeuristic(bytecode, index, am);
-        // }
-        // return 1 + calculateHeuristic(bytecode, instructionIndex-1, am);
-    }
-    // public int heuristic(AbsoluteMethod am, Branch branch) {
-    //     HashMap<Reference, Integer> heuristicMap = new HashMap<Reference, Integer>();
-    //     methodInvocations.get(am).forEach((ref) -> {
-    //         heuristicMap.put(ref, Integer.MAX_VALUE);
-    //     });
-    //     for (int i = 0; i < bytecodes.size(); i++) {
-    //         Bytecode bc = bytecodes.get(i);
-    //         JSONArray bcArray = (JSONArray) bc.getBytecode();
-    //         if (bc.getAm().equals(am)){
-    //             return calculateHeuristic(bcArray, bcArray.size()-1, am);
+    // public BoolExpr aStar(BranchNode startNode, BranchNode targetNode) {
+    //     buildHeuristicMap(targetNode);
+    //     Context ctx = Interpreter.getCtx();
+    //     BoolExpr expr = ctx.mkTrue();
+
+    //     PriorityQueue<BranchNode> openList = new PriorityQueue<>();
+    //     PriorityQueue<BranchNode> closedList = new PriorityQueue<>();
+        
+    //     openList.add(startNode);
+
+    //     if (openList.isEmpty()){
+    //         return null;
+    //     }
+
+        
+        
+    //     if (startNode.children.size()>0) {
+    //         int subCost = 0;
+    //         for (BranchNode child : startNode.children) {
+    //             // check the cost
+    //             openList.add(child);
+    //             if () {
+    //                 BoolExpr addExpr = ctx.mkAnd();
+    //             }
     //         }
     //     }
-    //     return -1;
+        
+    //     return expr;
     // }
-    
-    // // Recursively travel paths in a backwards manner
 
     //Find paths to an if or ifz condition
     public HashMap<Integer,Integer> findIfPaths(int size, AbsoluteMethod am, Bytecode bc){
@@ -201,6 +253,8 @@ class Reference {
         this.instruction = instruction;
     }
 }
+
+
 
 class PathHolder{
     AbsoluteMethod am;

@@ -7,7 +7,6 @@ public class App
 {
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
         Instant start = Instant.now();
         ArrayList<JsonFile> files;
         files = Folders.findFiles("projects/course-examples/json",".json");
@@ -15,7 +14,7 @@ public class App
         Interpreter interpreter = new Interpreter(files);
 
         Pathcreator pc = new Pathcreator();
-        pc.buildHeuristicMap(new AbsoluteMethod("Simple", "ifInLoop"), 3);
+        pc.buildHeuristicMap(new BranchNode("if", new AbsoluteMethod("Simple", "ifInLoop"), 6, 0));
         
         // interpreter.interpret("method");
         //Tests.testList(interpreter);
