@@ -10,4 +10,8 @@ public class Permission {
     public AccessLevel getAccessLevel() {
         return accessLevel;
     }
+
+    public String toString() {
+        return accessLevel.name();
+    }
 }
