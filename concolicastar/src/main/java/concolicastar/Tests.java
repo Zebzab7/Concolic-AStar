@@ -30,7 +30,7 @@ public class Tests {
         // testFunction(interpreter, new AbsoluteMethod("Simple", "min"));
         // testFunction(interpreter, new AbsoluteMethod("Simple", "factorial")); 
         // testFunction(interpreter, new AbsoluteMethod("Simple", "someFunction"));
-        testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoop"));
+        testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoop2"));
     }
     private static void testCalls(Interpreter interpreter) {
         System.out.println("Testing calls");

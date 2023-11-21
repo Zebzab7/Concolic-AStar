@@ -19,14 +19,24 @@ public class BranchNode implements Comparable<BranchNode> {
     
     BoolExpr condition;
 
-    public BranchNode(String type, AbsoluteMethod am, int instructionIndex, int cost) {
+     public BranchNode(String type, AbsoluteMethod am, int instructionIndex, int cost) {
         this.type = type;
         this.am = am;
         this.instructionIndex = instructionIndex;
         parents = null;
         trueChild = null;
         falseChild = null;
-        this.cost = cost;
+        this.cost = 0;
+    }
+
+    public BranchNode(AbsoluteMethod am, int instructionIndex) {
+        this.type = null;
+        this.am = am;
+        this.instructionIndex = instructionIndex;
+        parents = null;
+        trueChild = null;
+        falseChild = null;
+        this.cost = 0;
     }
 
     public BranchNode(String type, AbsoluteMethod am, int instructionIndex) {
@@ -95,7 +105,13 @@ public class BranchNode implements Comparable<BranchNode> {
     public void setCost(int cost) {
         this.cost = cost;
     }
-
+    public void setCondition(BoolExpr condition) {
+        this.condition = condition;
+    }
+    public BoolExpr getCondition() {
+        return condition;
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof BranchNode) {

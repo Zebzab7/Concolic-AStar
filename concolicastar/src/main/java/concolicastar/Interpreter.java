@@ -53,6 +53,7 @@ public class Interpreter {
         }
         Bytecode bc = findMethod(am);
         ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0, null);
+        stack.initializeBitVector(bc);
         for (Element el : args) {
             // System.out.println(el.toString());
             stack.getLv().push(el);

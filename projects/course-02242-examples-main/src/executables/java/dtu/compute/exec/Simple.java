@@ -79,18 +79,17 @@ public class Simple {
 
     @Case 
     public static int ifInLoop2(int n) {
-        int a = 10;
-        int b = n*2;
-        int x = a + b;
-        while (n > 0) {
-            if (n > 10) {
+        int b = 10;
+        int x = n + b;
+        while (n > 0) { // (n*2 + 10) > 0
+            if (n > 10) { // (n*2 + 10) > 10
                 x *= 2;
-                if(x > 0) {
+                if(x > 15) { // (n*2 + 10) > 0
                     x *= 5;
                 }
-            } else {
-                x *= 3;
-                if(x > 0) {
+            } else { // NOT((n*2 + 10) <= 10 AND (n*2 + 10) > 0)
+                // x *= 3;
+                if(x > 12) { // 
                     x *= 6;
                 }
             }

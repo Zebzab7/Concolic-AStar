@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Expr;
+import com.microsoft.z3.IntSort;
 import com.microsoft.z3.Sort;
 
 public class ProgramStack {
@@ -166,7 +167,7 @@ class Element {
     public void setValue(Object value){
         this.value = value;
     }
-    public void setSymbolicValue(Expr<Sort> symbolicValue){
+    public void setSymbolicValue(ArithExpr<IntSort> symbolicValue){
         this.symbolicValue = symbolicValue;
     }
     public String toString(){

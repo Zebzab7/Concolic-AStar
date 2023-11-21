@@ -56,9 +56,10 @@ public class Operations {
 
     public static ProgramStack _push(ProgramStack Stack){
         JSONObject values = (JSONObject) bc.get("value");
+        Long value = (Long) values.get("value");
         String type = (String) values.get("type");
-        Object value = values.get("value");
         Element el = new Element(type, value, generateArithExpression(type, value));
+        System.out.println("Push: "+ el);
         Stack.getOp().push(el);
         return Stack;
     }
@@ -84,7 +85,7 @@ public class Operations {
             String oprString = (String) bc.get("operant");
             Element res = ConcolicExecution.doBinary(oprString,ela,elb); 
             Stack.getOp().push(res);
-            
+            System.out.println("Value: "+ res);
         }
 
          // Symbolic execution with a symbolic input
@@ -98,6 +99,7 @@ public class Operations {
             throw new IllegalArgumentException("Not implemented yet");
         }
         Number index = (Number) bc.get("index");
+        System.out.println("Store: "+ el);
         if (index.intValue() >= stack.getLv().size()){
             stack.getLv().push(el);
         }
@@ -116,7 +118,7 @@ public class Operations {
         Number value = (Number) el.getValue();
         Number incrAmount = (Number) bc.get("amount");
         int res = value.intValue() + incrAmount.intValue();
-        Element elCopy = new Element(el.getType(), el.getValue(), el.getSymbolicValue());
+        // Element elCopy = new Element(el.getType(), el.getValue(), el.getSymbolicValue());
 
         // stack.getOp().pop();
         // stack.getOp().push(elCopy);
@@ -146,7 +148,9 @@ public class Operations {
             // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
             if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
                 stack.getExpressionCreatedVector().set(stack.getPc(), true);
-                stack.addBoolExpr(generateIfElseBoolExpression(el1,el2,oprString,res));
+                BoolExpr expr = generateIfElseBoolExpression(el1,el2,oprString,res);
+                System.out.println("Adding expression: " + expr);
+                stack.addBoolExpr(expr);
             }
             if (res) {
                 stack.setPc(target.intValue()-1);
@@ -172,7 +176,9 @@ public class Operations {
             // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
             if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
                 stack.getExpressionCreatedVector().set(stack.getPc(), true);
-                stack.addBoolExpr(generateIfElseBoolExpression(el,zero,oprString,res));
+                BoolExpr expr = generateIfElseBoolExpression(el,zero,oprString,res);
+                System.out.println("Adding expression: " + expr);
+                stack.addBoolExpr(expr);
             }
             if (res) {
                 stack.setPc(target-1);
@@ -186,25 +192,49 @@ public class Operations {
         ArithExpr<?> expr2 = (ArithExpr<?>) e2.getSymbolicValue();
 
         // Expr<IntSort> expr = ctx.mkIntConst("a");
-        if(e1.getValue().toString().contains(".")||e2.getValue().toString().contains(".")){
-            //double
-        }else{
-            //long
-        }
-        BoolExpr resBool = ctx.mkBool(result);
+        // if(e1.getValue().toString().contains(".")||e2.getValue().toString().contains(".")){
+        //     //double
+        // }else{
+        //     //long
+        // }
+        // BoolExpr resBool = ctx.mkBool(result);
         switch(condition) {
             case "gt":
-                return (BoolExpr) ctx.mkITE(resBool, ctx.mkGt(expr1, expr2),ctx.mkLe(expr1, expr2));
+                if (result) {
+                    return ctx.mkGt(expr1, expr2);
+                } else {
+                    return ctx.mkLe(expr1, expr2);
+                }
             case "ge":
-                return (BoolExpr) ctx.mkITE(resBool, ctx.mkGe(expr1, expr2),ctx.mkLt(expr1, expr2));
+                if (result) {
+                    return ctx.mkGe(expr1, expr2);
+                } else {
+                    return ctx.mkLt(expr1, expr2);
+                }
             case "lt":
-                return (BoolExpr) ctx.mkITE(resBool, ctx.mkLt(expr1, expr2),ctx.mkGe(expr1, expr2));
+                if (result) {
+                    return ctx.mkLt(expr1, expr2);
+                } else {
+                    return ctx.mkGe(expr1, expr2);
+                }
             case "le":
-                return (BoolExpr) ctx.mkITE(resBool, ctx.mkLe(expr1, expr2),ctx.mkGt(expr1, expr2));
+                if (result) {
+                    return ctx.mkLe(expr1, expr2);
+                } else {
+                    return ctx.mkGt(expr1, expr2);
+                }
             case "eq":
-                return (BoolExpr) ctx.mkITE(resBool, ctx.mkEq(expr1, expr2),ctx.mkNot(ctx.mkLe(expr1, expr2)));
-            // case "ne":
-                // return ctx.mkNot(expr1, expr2);
+                if (result) {
+                    return ctx.mkEq(expr1, expr2);
+                } else {
+                    return ctx.mkNot(ctx.mkEq(expr1, expr2));
+                }
+            case "ne":
+                if (result) {
+                    return ctx.mkNot(ctx.mkEq(expr1, expr2));
+                } else {
+                    return ctx.mkEq(expr1, expr2);
+                }
             default:
                 throw new IllegalArgumentException("Not implemented yet" + condition);
         }

@@ -146,30 +146,34 @@ public class Pathcreator {
     }
     
     public ArrayList<BranchNode> searchMethodInvocations(int cost, AbsoluteMethod am, 
-        JSONArray currentBytecode, int instructionIndex, BranchNode currentBranch) {
-        for (int i = instructionIndex; i >= 0; i--) {
+        JSONArray currentBytecode, int initialIndex, BranchNode currentBranch) {
+        for (int currentInstructionIndex = initialIndex; currentInstructionIndex >= 0; currentInstructionIndex--) {
             cost++;
             //Has the possible jump or is the top of an If statement
 
-            if (((JSONObject)currentBytecode.get(i)).get("opr").equals("goto")) {
-                Number numIndex = (Number) ((JSONObject)currentBytecode.get(i)).get("target");
+            if (((JSONObject)currentBytecode.get(currentInstructionIndex)).get("opr").equals("goto")) {
+                Number numIndex = (Number) ((JSONObject)currentBytecode.get(currentInstructionIndex)).get("target");
                 int targetIndex = numIndex.intValue();
-                if (targetIndex > i) {
 
-                    // If we are jumping forwards, we must be in an if-else
+                if (targetIndex > currentInstructionIndex) {
+                    // If we are jumping forwards, we must be in the else bracket of an if-else
                     // Find the branch, update parent and child reference and cost, then push onto stack
                     for (BranchNode foundBranch : branches.get(am)) {
-                        if (foundBranch.getInstructionIndex() == i) {
-                            String type = (String)((JSONObject)currentBytecode.get(i)).get("opr");
+                        if (foundBranch.getInstructionIndex() == currentInstructionIndex) {
+                            String type = (String)((JSONObject)currentBytecode.get(currentInstructionIndex)).get("opr");
                             
                             currentBranch.addParent(foundBranch);
                             if (foundBranch.getCost() > cost) {
                                 foundBranch.setCost(cost);
+                                System.out.println();
                                 foundBranch.setFalseChild(currentBranch);
                             }
                             return new ArrayList<BranchNode>(Arrays.asList(foundBranch));
                         }
                     }
+                } else {
+                    // If we are jumping backwards, we must be in a loop
+                    // In this case we just want the condition to enter that loop to be false, because it is faster to skip over it.
                 }
             }
 
@@ -178,15 +182,13 @@ public class Pathcreator {
                 // || ((JSONObject)currentBytecode.get(i)).get("opr").equals("if")
                 // || ((JSONObject) currentBytecode.get(i)).get("opr").equals("ifz") --
                 // jumps.containsKey(am) && jumps.get(am).containsKey(i)  || currentBranch.getType().equals("if/ifz/if_else")
-            if (jumps.containsKey(am) && jumps.get(am).containsKey(i) 
-                || ((JSONObject)currentBytecode.get(i)).get("opr").equals("if")
-                || ((JSONObject) currentBytecode.get(i)).get("opr").equals("ifz")) {
+            if (((JSONObject)currentBytecode.get(currentInstructionIndex)).get("opr").equals("if")
+                || ((JSONObject) currentBytecode.get(currentInstructionIndex)).get("opr").equals("ifz")) {
 
-                    // Find the branch, update parent and child reference and cost, then push onto stack
+                // Find the branch, update parent and child reference and cost, then push onto stack
                 for (BranchNode foundBranch : branches.get(am)) {
-                    if (foundBranch.getInstructionIndex() == i) {
-                        String type = (String)((JSONObject)currentBytecode.get(i)).get("opr");
-                        
+                    if (foundBranch.getInstructionIndex() == currentInstructionIndex) {
+                        String type = (String)((JSONObject)currentBytecode.get(currentInstructionIndex)).get("opr");
 
                         currentBranch.addParent(foundBranch);
                         if (foundBranch.getCost() > cost) {
@@ -230,21 +232,24 @@ public class Pathcreator {
 
         while (!frontier.isEmpty()){
             BranchNode n = frontier.poll();
+
+            // And the condition of the branch to the expression
+            expr = ctx.mkAnd(expr, n.getCondition());
+
             if (n.equals(targetNode)){
                 System.out.println("Target node reached after " + iterations + " iterations");
                 System.out.println("Final expression: " + expr.toString() + "\n");
                 break;
             }
 
-            int max = 0;
             ArrayList<BranchNode> children = n.getChildren();
             if (!children.isEmpty()) {
                 for (BranchNode child : children) {
                     frontier.add(child);
-                    if (child.getCost() < Integer.MAX_VALUE) {
-                       BoolExpr addTrueChild = ctx.mkBool(true);
-                       BoolExpr exprTrue = ctx.mkAnd(expr,addTrueChild);
-                    }
+                    // if (child.getCost() < Integer.MAX_VALUE) {
+                    //    BoolExpr addTrueChild = ctx.mkBool(true);
+                    //    BoolExpr exprTrue = ctx.mkAnd(expr,addTrueChild);
+                    // }
                 }
             }
             iterations++;

@@ -180,7 +180,9 @@ public class ConcolicExecution{
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong + bLong), Interpreter.getCtx().mkInt(aLong+bLong));
+            ArithExpr<ArithSort> newSymbolicValue
+                 = Interpreter.getCtx().mkAdd((ArithExpr<ArithSort>) a.getSymbolicValue(),(ArithExpr<ArithSort>)b.getSymbolicValue());
+            return new Element("long",(Number) (aLong + bLong), newSymbolicValue);
         }
     }
 
@@ -197,24 +199,29 @@ public class ConcolicExecution{
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong - bLong), Interpreter.getCtx().mkInt(aLong-bLong));
+             ArithExpr<ArithSort> newSymbolicValue
+                 = Interpreter.getCtx().mkSub((ArithExpr<ArithSort>) a.getSymbolicValue(),(ArithExpr<ArithSort>)b.getSymbolicValue());
+            return new Element("long",(Number) (aLong - bLong), newSymbolicValue);
         }
     }
 
     public static Element _mul(Element a, Element b){
-        System.out.println("mul: "+ (((Number)a.getValue()).doubleValue() * ((Number)b.getValue()).doubleValue()));
+        // System.out.println("mul: "+ (((Number)a.getValue()).doubleValue() * ((Number)b.getValue()).doubleValue()));
         String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
         String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
         if(objecta.contains(".") || objectb.contains(".")){
             Double aDouble =Double.parseDouble(objecta);
             Double bDouble =Double.parseDouble(objectb);
             String doubleab = Double.toString(aDouble*bDouble);
+            // ArithExpr<ArithSort> newSymbolicValue = (ArithExpr<ArithSort>) Interpreter.getCtx().mkMul(a.getSymbolicValue(),b.getSymbolicValue());
             return new Element("double",(Number) (aDouble * bDouble), Interpreter.getCtx().mkReal(doubleab));
         }
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong * bLong), Interpreter.getCtx().mkInt(aLong*bLong));
+            ArithExpr<ArithSort> newSymbolicValue
+                 = Interpreter.getCtx().mkMul((ArithExpr<ArithSort>) a.getSymbolicValue(),(ArithExpr<ArithSort>)b.getSymbolicValue());
+            return new Element("long",(Number) (aLong * bLong), newSymbolicValue);
         }
     }
 
@@ -231,7 +238,10 @@ public class ConcolicExecution{
         else{
             Long aLong =Long.parseLong(objecta);
             Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong / bLong), Interpreter.getCtx().mkInt(aLong/bLong));
+            ArithExpr<ArithSort> newSymbolicValue
+                 = Interpreter.getCtx().mkDiv((ArithExpr<ArithSort>) a.getSymbolicValue(),(ArithExpr<ArithSort>)b.getSymbolicValue());
+ 
+            return new Element("long",(Number) (aLong / bLong), newSymbolicValue);
         }
     }
 
@@ -248,7 +258,10 @@ public class ConcolicExecution{
         else{
             Long aLong = Long.parseLong(objecta);
             Long bLong = Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong % bLong), Interpreter.getCtx().mkInt(aLong%bLong));
+            Expr<IntSort> newSymbolicValue
+                 = Interpreter.getCtx().mkMod((Expr<IntSort>) a.getSymbolicValue(),(Expr<IntSort>)b.getSymbolicValue());
+ 
+            return new Element("long",(Number) (aLong % bLong), newSymbolicValue);
         }
     }
  
