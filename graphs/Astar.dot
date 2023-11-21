@@ -1,6 +1,3 @@
 digraph G{ 
- start ->0 [label="6"];
-1->2 [label="11"];
-2->3 [label="0"];
-
+ 
 }

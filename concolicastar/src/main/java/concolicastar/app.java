@@ -19,12 +19,12 @@ public class App
 
         Pathcreator pc = new Pathcreator();
         BranchNode targetNode 
-            = new BranchNode(new AbsoluteMethod("Simple", "ifInLoop2"), 31);
+            = new BranchNode(new AbsoluteMethod("Simple", "ifInLoop2"), 10);
         BranchNode startNode = pc.buildHeuristicMap(targetNode);
         pc.aStar(startNode, targetNode);
 
         // interpreter.interpret("method");
-        Tests.testList(interpreter);
+        // Tests.testList(interpreter);
         Instant end = Instant.now();
         long executionTime = end.toEpochMilli() - start.toEpochMilli();
         System.out.println("Execution time is: " + executionTime + "milliseconds");

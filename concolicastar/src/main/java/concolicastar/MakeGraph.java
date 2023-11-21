@@ -31,12 +31,12 @@ public class MakeGraph{
             BranchNode bfalse = startingBranch.getFalseChild();
             BranchNode btrue = startingBranch.getTrueChild();
             if(btrue!=null){
-                fw.write("start ->" + counter + " [label=\"" + btrue.getCost() +"\"];" + "\n");
+                fw.write("start ->" + counter + " [label=\"" + btrue.getH() +"\"];" + "\n");
                 counter ++;
                 getChildren(btrue,counter,fw);
             }
             if(bfalse !=null) {
-                fw.write("start ->" + counter + " [label=\"" + bfalse.getCost() +"\"];" + "\n");
+                fw.write("start ->" + counter + " [label=\"" + bfalse.getH() +"\"];" + "\n");
                 counter++;
                 getChildren(bfalse,counter,fw);
             }
@@ -55,12 +55,12 @@ public class MakeGraph{
         BranchNode bfalse = branch.getFalseChild();
         if (btrue != null) {
             counter++;
-            fw.write("" + num + "->" + counter + " [label=\"" + btrue.getCost() +"\"];" + "\n");
+            fw.write("" + num + "->" + counter + " [label=\"" + btrue.getH() +"\"];" + "\n");
             getChildren(btrue,counter,fw);
         }
         if (bfalse != null) {
             counter ++;
-            fw.write("" + num + "->" + counter + " [label=\""+ bfalse.getCost() +"\"];" + "\n");
+            fw.write("" + num + "->" + counter + " [label=\""+ bfalse.getH() +"\"];" + "\n");
             getChildren(bfalse,counter,fw);
         }
         return;

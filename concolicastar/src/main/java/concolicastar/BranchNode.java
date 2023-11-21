@@ -15,18 +15,22 @@ public class BranchNode implements Comparable<BranchNode> {
     private ArrayList<BranchNode> parents;
     private BranchNode trueChild;
     private BranchNode falseChild;
-    private int cost;
+    private int h;
+    private int actualCost;
+
+    private boolean evaluationToChild;
+    private boolean evaluationToParent;
     
     BoolExpr condition;
 
-     public BranchNode(String type, AbsoluteMethod am, int instructionIndex, int cost) {
+    public BranchNode(String type, AbsoluteMethod am, int instructionIndex, int cost) {
         this.type = type;
         this.am = am;
         this.instructionIndex = instructionIndex;
         parents = null;
         trueChild = null;
         falseChild = null;
-        this.cost = 0;
+        this.h = 0;
     }
 
     public BranchNode(AbsoluteMethod am, int instructionIndex) {
@@ -36,7 +40,7 @@ public class BranchNode implements Comparable<BranchNode> {
         parents = null;
         trueChild = null;
         falseChild = null;
-        this.cost = 0;
+        this.h = 0;
     }
 
     public BranchNode(String type, AbsoluteMethod am, int instructionIndex) {
@@ -46,7 +50,7 @@ public class BranchNode implements Comparable<BranchNode> {
         parents = null;
         trueChild = null;
         falseChild = null;
-        cost = 0;
+        h = 0;
     }
 
     public ArrayList<BranchNode> getChildren(){
@@ -71,7 +75,18 @@ public class BranchNode implements Comparable<BranchNode> {
     public BranchNode getFalseChild() {
         return falseChild;
     }
-
+    public void setEvaluationToParent(boolean evaluationToParent) {
+        this.evaluationToParent = evaluationToParent;
+    }
+    public boolean getEvaluationToParent() {
+        return evaluationToParent;
+    }
+    public void setEvaluationToChild(boolean evaluation) {
+        this.evaluationToChild = evaluation;
+    }
+    public boolean getEvaluateToTrue() {
+        return evaluationToChild;
+    }
     public AbsoluteMethod getAm() {
         return am;
     }
@@ -84,8 +99,8 @@ public class BranchNode implements Comparable<BranchNode> {
     public String getType() {
         return type;
     }
-    public int getCost() {
-        return cost;
+    public int getH() {
+        return h;
     }
     public void setAm(AbsoluteMethod am) {
         this.am = am;
@@ -102,14 +117,20 @@ public class BranchNode implements Comparable<BranchNode> {
     public void setType(String type) {
         this.type = type;
     }
-    public void setCost(int cost) {
-        this.cost = cost;
+    public void setH(int cost) {
+        this.h = cost;
     }
     public void setCondition(BoolExpr condition) {
         this.condition = condition;
     }
     public BoolExpr getCondition() {
         return condition;
+    }
+    public int getActualCost() {
+        return actualCost;
+    }
+    public void setActualCost(int actualCost) {
+        this.actualCost = actualCost;
     }
     
     @Override
@@ -134,12 +155,12 @@ public class BranchNode implements Comparable<BranchNode> {
                 "Type: " + type + "\n" +
                 "Method: " + am.toString() + "\n" +
                 "Instruction Index: " + instructionIndex + "\n" +
-                "Cost: " + cost + "\n";
+                "Cost: " + h + "\n";
     }
 
     @Override
     public int compareTo(BranchNode o) {
-        return Integer.compare(this.cost , o.cost);
+        return Integer.compare(this.h , o.h);
     }
 }
 

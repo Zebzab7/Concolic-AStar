@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.IntNum;
+
 /**
  * Generic object converter.
  * <p>
@@ -139,6 +142,14 @@ public final class ObjectConverter {
     */
     public static Boolean integerToBoolean(Integer value) {
         return value.intValue() == 0 ? Boolean.FALSE : Boolean.TRUE;
+    }
+    public static String intNumToString(IntNum value) {
+        System.out.println("OBJECT CONVERTER HANDLE DOUBLE CHECK \n");
+        System.out.println("intNumToString: " + value.toString());
+        System.out.println();
+        System.out.println();
+        
+        return value.toString();
     }
 
     /**

@@ -83,7 +83,7 @@ public class Operations {
 
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
-            Element res = ConcolicExecution.doBinary(oprString,ela,elb); 
+            Element res = ConcolicOperations.doBinary(oprString,ela,elb); 
             Stack.getOp().push(res);
             System.out.println("Value: "+ res);
         }
@@ -142,7 +142,7 @@ public class Operations {
 
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
+            boolean res = ConcolicOperations.doCompare(oprString, el1, el2);
 
             // If instruction is condition for a loop, then we only create a new expression the first time
             // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
@@ -152,6 +152,21 @@ public class Operations {
                 System.out.println("Adding expression: " + expr);
                 stack.addBoolExpr(expr);
             }
+
+            // if (Interpreter.astar) {
+            //     for (BranchNode node : Pathcreator.getBranches().get(stack.getAm())) {
+            //         if (node.getInstructionIndex() == stack.getPc()) {
+            //             node.setCondition(stack.getBoolExpr());
+            //             BranchNode falseChild = node.getFalseChild();
+            //             BranchNode trueChild = node.getTrueChild();
+            //             if ((trueChild.getHeuristicCost() > falseChild.getHeuristicCost() && res) 
+            //                 || (trueChild.getHeuristicCost() < falseChild.getHeuristicCost() && !res)) {
+                                
+            //                 Interpreter.setInterrupt(true);
+            //             } 
+            //         }
+            //     }
+            // }
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                
@@ -170,7 +185,7 @@ public class Operations {
         // Finds the boolean condition
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, el, zero);
+            boolean res = ConcolicOperations.doCompare(oprString, el, zero);
             
             // If instruction is condition for a loop, then we only create a new expression the first time
             // if (stack.getBranches().get(stack.getPc()).equals("loop")) {

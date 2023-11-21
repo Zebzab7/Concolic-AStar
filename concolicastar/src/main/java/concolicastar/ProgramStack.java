@@ -17,6 +17,7 @@ public class ProgramStack {
     AbsoluteMethod am;
     int pc;
     BoolExpr boolExpr;
+    ArrayList<BoolExpr> boolExprList;
 
     HashMap<Integer, Integer> jumps;
     HashMap<Integer, String> branches;
@@ -24,12 +25,11 @@ public class ProgramStack {
     // Stores whether an expression has been created for a given variable for each instruction
     ArrayList<Boolean> expressionCreatedVector;
 
-    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc, BoolExpr boolExpr) {
+    public ProgramStack(Stack lv, Stack op, AbsoluteMethod am, int pc) {
         this.lv = lv;
         this.op = op;
         this.am = am;
         this.pc = pc;
-        this.boolExpr = boolExpr;
     }
 
     public void initializeBranchesAndLoops() {
@@ -117,7 +117,18 @@ public class ProgramStack {
         this.pc = pc;
     }
 
+    public void setBoolExprList(ArrayList<BoolExpr> boolExprList) {
+        this.boolExprList = boolExprList;
+    }
+    public ArrayList<BoolExpr> getBoolExprList() {
+        return boolExprList;
+    }
+
     public void addBoolExpr(BoolExpr expr) {
+        if (boolExprList == null) {
+            boolExprList = new ArrayList<BoolExpr>();
+        }
+        boolExprList.add(expr);
         if (boolExpr == null) {
             boolExpr = expr;
         } else {

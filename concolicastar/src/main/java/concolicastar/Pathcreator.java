@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import com.kitfox.svg.A;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import java.util.PriorityQueue;
@@ -13,22 +14,27 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.microsoft.z3.Expr;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Model;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Status;
 
 public class Pathcreator {
 
-    ArrayList<Bytecode> bytecodes;
+    static ArrayList<Bytecode> bytecodes = Interpreter.getBytecodes();
     
     // Store branches
-    HashMap<AbsoluteMethod,ArrayList<BranchNode>> branches;
-    HashMap<AbsoluteMethod,HashMap<Integer,Integer>> jumps;
+    static HashMap<AbsoluteMethod,ArrayList<BranchNode>> branches;
+    static HashMap<AbsoluteMethod,HashMap<Integer,Integer>> jumps;
 
     // Stores the method invoked, as well as a reference to the location from which it was invoked
-    HashMap<AbsoluteMethod,ArrayList<Reference>> methodInvocations = new HashMap<AbsoluteMethod,ArrayList<Reference>>();
+    static HashMap<AbsoluteMethod,ArrayList<Reference>> methodInvocations;
 
     public Pathcreator() {
-        bytecodes = Interpreter.getBytecodes();
+        // bytecodes = Interpreter.getBytecodes();
         jumps = new HashMap<AbsoluteMethod, HashMap<Integer,Integer>>();
         branches = new HashMap<AbsoluteMethod, ArrayList<BranchNode>>();
+        methodInvocations = new HashMap<AbsoluteMethod, ArrayList<Reference>>();
         findMethodsContainingMethods();
         System.out.println(methodstacktoString());
     }
@@ -111,7 +117,7 @@ public class Pathcreator {
         for (BranchNode branch : branches.get(am)) {
             if (branch.equals(targetNode)) {
                 targetNode = branch;
-                targetNode.setCost(0);
+                targetNode.setH(0);
                 branchStack.add(branch);
                 System.out.println("Found target node: " + targetNode);
             }
@@ -160,12 +166,9 @@ public class Pathcreator {
                     // Find the branch, update parent and child reference and cost, then push onto stack
                     for (BranchNode foundBranch : branches.get(am)) {
                         if (foundBranch.getInstructionIndex() == currentInstructionIndex) {
-                            String type = (String)((JSONObject)currentBytecode.get(currentInstructionIndex)).get("opr");
-                            
                             currentBranch.addParent(foundBranch);
-                            if (foundBranch.getCost() > cost) {
-                                foundBranch.setCost(cost);
-                                System.out.println();
+                            if (foundBranch.getH() > cost) {
+                                foundBranch.setH(cost);
                                 foundBranch.setFalseChild(currentBranch);
                             }
                             return new ArrayList<BranchNode>(Arrays.asList(foundBranch));
@@ -191,8 +194,8 @@ public class Pathcreator {
                         String type = (String)((JSONObject)currentBytecode.get(currentInstructionIndex)).get("opr");
 
                         currentBranch.addParent(foundBranch);
-                        if (foundBranch.getCost() > cost) {
-                            foundBranch.setCost(cost);
+                        if (foundBranch.getH() > cost) {
+                            foundBranch.setH(cost);
 
                             // IF loop or just "if" then:
                             foundBranch.setTrueChild(currentBranch);
@@ -217,44 +220,123 @@ public class Pathcreator {
     }
 
     public BoolExpr aStar(BranchNode startNode, BranchNode targetNode) {
-        // buildHeuristicMap(targetNode);
+        Interpreter.setAstarInterpretation(true);
         Context ctx = Interpreter.getCtx();
-        BoolExpr expr = ctx.mkTrue();
+        System.out.println("here");
 
-        PriorityQueue<BranchNode> frontier = new PriorityQueue<>();
+        // Generate list of alphabet: 
+        String[] alphabet = new String[26];
+        for (int i = 0; i < alphabet.length; i++) {
+            alphabet[i] = "" + (char)('a' + i);
+        }
         
-        frontier.add(startNode);
+        AbsoluteMethod am = startNode.getAm();
+        Bytecode bc = Interpreter.findMethod(am);
+        
+        ArrayList<Element> elements = new ArrayList<Element>();
+        ArrayList<String> argTypes = bc.getArgsTypes();
+        
+        int count = 0;
+        for (String type : argTypes) {
+            switch (type) {
+                case "int":
+                    IntExpr intExpr = ctx.mkIntConst(alphabet[count]);
+                    elements.add(new Element("int", 0, intExpr));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Type not handled");
+            }
+            count++;
+        }
+        Element[] args = new Element[elements.size()];
+        for (int i = 0; i < elements.size(); i++) {
+            args[i] = elements.get(i);
+        }
+
+        Solver solver = ctx.mkSolver();
+        boolean solutionFound = false;
+        BoolExpr expr = null;
+
+        PriorityQueue<BranchNode> frontier = new PriorityQueue<BranchNode>();
+        PriorityQueue<BranchNode> explored = new PriorityQueue<BranchNode>();
+
+        HashMap<BranchNode, BranchNode> cameFrom = new HashMap<BranchNode, BranchNode>();
+
+        HashMap<BranchNode, Integer> gScore = new HashMap<BranchNode, Integer>();
+        gScore.put(startNode, 0);
+
+        HashMap<BranchNode, Integer> fScore = new HashMap<BranchNode, Integer>();
+        fScore.put(startNode, startNode.getH());
+
         if (frontier.isEmpty()){
-            return null;
+            throw new IllegalArgumentException("Frontier is empty at start");
         }
-
-        int iterations = 0;
-
-        while (!frontier.isEmpty()){
-            BranchNode n = frontier.poll();
-
-            // And the condition of the branch to the expression
-            expr = ctx.mkAnd(expr, n.getCondition());
-
-            if (n.equals(targetNode)){
-                System.out.println("Target node reached after " + iterations + " iterations");
-                System.out.println("Final expression: " + expr.toString() + "\n");
-                break;
+        frontier.add(startNode);
+        
+        while (!frontier.isEmpty()) {
+            BranchNode currentNode = frontier.poll();
+            
+            if(currentNode.equals(targetNode)){
+                reconstructPath(cameFrom, currentNode);
             }
-
-            ArrayList<BranchNode> children = n.getChildren();
-            if (!children.isEmpty()) {
-                for (BranchNode child : children) {
-                    frontier.add(child);
-                    // if (child.getCost() < Integer.MAX_VALUE) {
-                    //    BoolExpr addTrueChild = ctx.mkBool(true);
-                    //    BoolExpr exprTrue = ctx.mkAnd(expr,addTrueChild);
-                    // }
-                }
-            }
-            iterations++;
+            
+            Interpreter.interpretStartToTarget(startNode.getAm(), args, targetNode);
         }
-        return expr;
+        //assume goal is not found  
+        System.out.println("Not path to goal was found");   
+        throw new IllegalArgumentException("No path to goal was found");     
+        // while (!solutionFound) {
+        //     ProgramStack stack = Interpreter.interpretFunction(am, args);
+        //     expr = stack.getBoolExpr();
+
+        //     ArrayList<BoolExpr> boolExprList = stack.getBoolExprList();
+        //     int n = boolExprList.size();
+        //     BoolExpr boolExpr = null;
+        //     for (int i = 0; i < n-1; i++) {
+        //         if (boolExpr != null) {
+        //             boolExpr = ctx.mkAnd(boolExpr, boolExprList.get(i));
+        //         } else {
+        //             boolExpr = boolExprList.get(i);
+        //         }
+        //     }
+        //     solver.add(ctx.mkAnd(boolExpr, ctx.mkNot(boolExprList.get(n-1))));
+        //     Status satisfiable = solver.check();
+        //     if (satisfiable == Status.SATISFIABLE) {
+        //         System.out.println("SATISFIABLE");
+
+        //         Model model = solver.getModel();
+        //         System.out.println("model"+ model);
+
+        //         // Update the values of the elements if they changed
+        //         for (int i = 0; i < elements.size(); i++) {
+        //             Element e = elements.get(i);
+        //             switch (e.getType()) {
+        //                 case "int":
+        //                     IntExpr intExpr = (IntExpr) e.getSymbolicValue();
+        //                     if (model.getConstInterp(intExpr) != null) {
+        //                         e.setValue(Integer.parseInt(model.getConstInterp(intExpr).toString()));
+        //                     }
+        //                     break;
+        //                 default:
+        //                     throw new IllegalArgumentException("Type not handled");
+        //             }
+        //         }
+        //     } else {
+        //         System.out.println("NOT SATISFIABLE");
+        //         break;
+        //     }
+        // }
+        // return expr;
+    }
+    
+    public static ArrayList<BoolExpr> reconstructPath(HashMap<BranchNode, BranchNode> cameFrom, BranchNode currentNode) {
+        ArrayList<BoolExpr> totalPath = new ArrayList<BoolExpr>();
+        totalPath.add(currentNode.getCondition());
+        while (cameFrom.containsKey(currentNode)) {
+            currentNode = cameFrom.get(currentNode);
+            totalPath.add(currentNode.getCondition());
+        }
+        return totalPath;
     }
 
     //Find paths to an if or ifz condition
@@ -281,6 +363,30 @@ public class Pathcreator {
         }
 
         return s;
+    }
+
+    public static HashMap<AbsoluteMethod, ArrayList<BranchNode>> getBranches() {
+        return branches;
+    }
+
+    public static void setBranches(HashMap<AbsoluteMethod, ArrayList<BranchNode>> branches) {
+        Pathcreator.branches = branches;
+    }
+
+    public static HashMap<AbsoluteMethod, HashMap<Integer, Integer>> getJumps() {
+        return jumps;
+    }
+
+    public static void setJumps(HashMap<AbsoluteMethod, HashMap<Integer, Integer>> jumps) {
+        Pathcreator.jumps = jumps;
+    }
+
+    public static HashMap<AbsoluteMethod, ArrayList<Reference>> getMethodInvocations() {
+        return methodInvocations;
+    }
+
+    public static void setMethodInvocations(HashMap<AbsoluteMethod, ArrayList<Reference>> methodInvocations) {
+        Pathcreator.methodInvocations = methodInvocations;
     }
 
 }
