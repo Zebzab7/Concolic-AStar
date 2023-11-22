@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import com.kitfox.svg.A;
 import com.microsoft.z3.BoolExpr;
@@ -250,7 +251,7 @@ public class Pathcreator {
         return methodBranches;
     }
 
-    public BoolExpr aStar(BranchNode startNode, BranchNode targetNode) {
+    public BoolExpr aStar(BranchNode startNode, BranchNode targetNode, HashSet<BranchNode> explored) {
         Interpreter.setAstarInterpretation(true);
         Context ctx = Interpreter.getCtx();
 
@@ -289,7 +290,7 @@ public class Pathcreator {
 
         // Prepare Astar
         PriorityQueue<BranchNode> frontier = new PriorityQueue<BranchNode>();
-        PriorityQueue<BranchNode> explored = new PriorityQueue<BranchNode>();
+        // PriorityQueue<BranchNode> explored = new PriorityQueue<BranchNode>();
 
         HashMap<BranchNode, BranchNode> cameFrom = new HashMap<BranchNode, BranchNode>();
 
@@ -307,7 +308,6 @@ public class Pathcreator {
 
         // Astar loop
         while (!frontier.isEmpty()) {
-            System.out.println("yoo");
             BranchNode currentNode = frontier.poll();
             if(currentNode.equals(targetNode)){
                 return reconstructPath(cameFrom, currentNode);

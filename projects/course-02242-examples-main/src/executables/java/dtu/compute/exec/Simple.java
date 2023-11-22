@@ -81,7 +81,7 @@ public class Simple {
     public static int ifInLoop2(int n) {
         int b = 10;
         int x = n + b;
-        while (n > 0 && n < 3) {
+        while (n > 0 && n <= 10) {
             if (n > 5) {
                 x *= 2;
                 if(x > 0) {  // Search point

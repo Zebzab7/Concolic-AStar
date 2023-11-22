@@ -17,11 +17,11 @@ public class App
         Interpreter interpreter = new Interpreter(files);
         Interpreter.setContext(new Context());
 
-        // Pathcreator pc = new Pathcreator();
-        // BranchNode targetNode 
-        //     = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple"), 10);
-        // BranchNode startNode = pc.buildHeuristicMap(targetNode);
-        // pc.aStar(startNode, targetNode);
+        Pathcreator pc = new Pathcreator();
+        BranchNode targetNode 
+            = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple"), 11);
+        BranchNode startNode = pc.buildHeuristicMap(targetNode);
+        pc.aStar(startNode, targetNode);
 
         // interpreter.interpret("method");
         ConcolicExecution.testList(interpreter);

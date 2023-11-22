@@ -31,7 +31,7 @@ public class ConcolicExecution {
         // testFunction(interpreter, new AbsoluteMethod("Simple", "min"));
         // testFunction(interpreter, new AbsoluteMethod("Simple", "factorial")); 
         // testFunction(interpreter, new AbsoluteMethod("Simple", "someFunction"));
-        testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoopSimple"));
+        testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoop2"));
     }
     private static void testCalls(Interpreter interpreter) {
         System.out.println("Testing calls");
@@ -63,7 +63,6 @@ public class ConcolicExecution {
             alphabet[i] = "" +(char)('a' + i);
         }
 
-        // TODO: implement all cases
         // Read the arguments of the method and assign initial values
         int count = 0;
         Bytecode bc = Interpreter.findMethod(am);
@@ -127,29 +126,6 @@ public class ConcolicExecution {
             ArrayList<Integer> startBrackets = res.getStartBrackets();
             ArrayList<Integer> endBrackets = res.getEndBrackets();
             BoolExpr resExpr = res.getBoolExpr();
-            // BoolExpr innerExpr = null;
-            // for (int i = 0; i < boolExprList.size(); i++) {
-            //     if (startBrackets.contains(i)) {
-            //         System.out.println("In start brackets");
-            //         innerExpr = boolExprList.get(i);
-            //         int j = i + 1;
-            //         while (j < boolExprList.size() && !endBrackets.contains(j)) {
-            //             System.out.println("In inner loop");
-            //             BoolExpr innerExpr2 = boolExprList.get(j);
-            //             innerExpr = ctx.mkAnd(innerExpr, innerExpr2);
-            //             j++;
-            //         }
-            //         i = j;
-            //     } else {
-            //         resExpr = ctx.mkAnd(resExpr,boolExprList.get(i));
-            //     }
-            // }
-            // resExpr = innerExpr;
-            
-            System.out.println("start brackets: " + startBrackets);
-            System.out.println("end brackets: " + endBrackets);
-            System.out.println("Res list: " + res.getBoolExprList());
-            System.out.println("resExpr: " + toInfix(resExpr));
 
             resExpr = ctx.mkNot((BoolExpr) res.getBoolExpr());
             if (fullExpr == null) {
