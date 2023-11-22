@@ -81,15 +81,33 @@ public class Simple {
     public static int ifInLoop2(int n) {
         int b = 10;
         int x = n + b;
-        while (n > 0) { // (n*2 + 10) > 0
-            if (n > 10) { // (n*2 + 10) > 10
+        while (n > 0 && n < 3) {
+            if (n > 5) {
                 x *= 2;
-                if(x > 15) { // (n*2 + 10) > 0
+                if(x > 0) {  // Search point
                     x *= 5;
                 }
-            } else { // NOT((n*2 + 10) <= 10 AND (n*2 + 10) > 0)
-                // x *= 3;
-                if(x > 12) { // 
+            } else { 
+                x *= 3;
+                if(x > 0) {  // Search point
+                    x *= 6;
+                }
+            }
+            n--;
+        }
+        return x;
+    }
+
+    @Case 
+    public static int ifInLoopSimple(int n) {
+        int x = 10;
+        while (n > 0 && n <= 3) {
+            if (n > 2) {
+                if(n > 0) {  // Search point
+                    x *= 5;
+                }
+            } else { 
+                if(n > 0) {  // Search point
                     x *= 6;
                 }
             }

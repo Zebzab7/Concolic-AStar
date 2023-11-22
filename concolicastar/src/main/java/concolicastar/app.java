@@ -15,16 +15,16 @@ public class App
         files = Folders.findFiles("projects/course-examples/json",".json");
 
         Interpreter interpreter = new Interpreter(files);
-        interpreter.setContext(new Context());
+        Interpreter.setContext(new Context());
 
-        Pathcreator pc = new Pathcreator();
-        BranchNode targetNode 
-            = new BranchNode(new AbsoluteMethod("Simple", "ifInLoop2"), 10);
-        BranchNode startNode = pc.buildHeuristicMap(targetNode);
-        pc.aStar(startNode, targetNode);
+        // Pathcreator pc = new Pathcreator();
+        // BranchNode targetNode 
+        //     = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple"), 10);
+        // BranchNode startNode = pc.buildHeuristicMap(targetNode);
+        // pc.aStar(startNode, targetNode);
 
         // interpreter.interpret("method");
-        // Tests.testList(interpreter);
+        ConcolicExecution.testList(interpreter);
         Instant end = Instant.now();
         long executionTime = end.toEpochMilli() - start.toEpochMilli();
         System.out.println("Execution time is: " + executionTime + "milliseconds");

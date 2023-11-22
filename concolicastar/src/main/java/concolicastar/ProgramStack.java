@@ -19,6 +19,9 @@ public class ProgramStack {
     BoolExpr boolExpr;
     ArrayList<BoolExpr> boolExprList;
 
+    ArrayList<Integer> startBrackets;
+    ArrayList<Integer> endBrackets;
+
     HashMap<Integer, Integer> jumps;
     HashMap<Integer, String> branches;
 
@@ -30,6 +33,8 @@ public class ProgramStack {
         this.op = op;
         this.am = am;
         this.pc = pc;
+        startBrackets = new ArrayList<Integer>();
+        endBrackets = new ArrayList<Integer>();
     }
 
     public void initializeBranchesAndLoops() {
@@ -76,6 +81,19 @@ public class ProgramStack {
         System.out.println("Bitvector: " + expressionCreatedVector.toString());
     }
 
+    public void addStartBracket() {
+        if (boolExprList == null) {
+            boolExprList = new ArrayList<BoolExpr>();
+        }
+        startBrackets.add(boolExprList.size());
+    }
+    public void addEndBracket() {
+        if (boolExprList == null) {
+            boolExprList = new ArrayList<BoolExpr>();
+        }
+        endBrackets.add(boolExprList.size());
+    }
+
     public HashMap<Integer, String> getBranches() {
         return branches;
     }
@@ -115,6 +133,22 @@ public class ProgramStack {
     }
     public void setPc(int pc) {
         this.pc = pc;
+    }
+
+    public ArrayList<Integer> getStartBrackets() {
+        return startBrackets;
+    }
+
+    public ArrayList<Integer> getEndBrackets() {
+        return endBrackets;
+    }
+    
+    public void setStartBrackets(ArrayList<Integer> startBrackets) {
+        this.startBrackets = startBrackets;
+    }
+
+    public void setEndBrackets(ArrayList<Integer> endBrackets) {
+        this.endBrackets = endBrackets;
     }
 
     public void setBoolExprList(ArrayList<BoolExpr> boolExprList) {

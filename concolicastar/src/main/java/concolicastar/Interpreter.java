@@ -25,6 +25,8 @@ public class Interpreter {
 
     public static int actualCost = 0;
 
+    public static long lastLoopTarget = 0;
+
     private static Context ctx;
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
     static BootstrapMethods bootstrapMethods;
@@ -276,6 +278,7 @@ public class Interpreter {
     public static ProgramStack interpretFunction(AbsoluteMethod am, Element[] args) {
         count = 0;
         interrupt = false;
+        lastLoopTarget = 0;
         return interpret(am, args);
     }
 
@@ -291,15 +294,32 @@ public class Interpreter {
         }
         Bytecode bc = findMethod(am);
         ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0);
-        stack.initializeBitVector(bc);
+        // stack.initializeBitVector(bc);''
         for (Element el : args) {
-            // System.out.println(el.toString());
             stack.getLv().push(el);
         }
 
         while (stack.getPc() < bc.getBytecode().size()) {
             JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
             String oprString = (String) bytecode.get("opr");
+
+            // if (oprString.equals("if") || oprString.equals("ifz")) {
+            //     for (BranchNode node : Pathcreator.branches.get(am)) {
+            //         if (node.getInstructionIndex() == stack.getPc() && node.getType().equals("loop")) {
+            //             long target = (long) bytecode.get("target");
+            //             if (target != lastLoopTarget) {
+            //                 stack.addStartBracket();
+            //                 lastLoopTarget = target;
+            //             }
+            //         }
+            //     }
+            // }
+
+            // if (oprString.equals("goto")) {
+            //     if (stack.getPc() > (long) bytecode.get("target")) {
+            //         stack.addEndBracket();
+            //     }
+            // }
 
             Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods(), ctx);
             stack = Operations.doOperation(stack, oprString);

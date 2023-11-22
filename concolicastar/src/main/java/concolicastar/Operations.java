@@ -10,13 +10,14 @@ import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.IntSort;
 
 public class Operations {
     public static JSONObject bc;
     public static JSONArray bm;
     public static Context ctx;
     public static Z3PathState pathState = new Z3PathState();
-
+    
     // import bytecode
     public Operations(JSONObject bc,JSONArray bootstrapMethods, Context ctx){
         Operations.bc = bc;
@@ -123,6 +124,7 @@ public class Operations {
         // stack.getOp().pop();
         // stack.getOp().push(elCopy);
         el.setValue(res);
+        el.setSymbolicValue(ctx.mkAdd((Expr<IntSort>)el.getSymbolicValue(),(Expr<IntSort>) ctx.mkInt(incrAmount.intValue())));
         return stack;
     }
 
@@ -143,30 +145,18 @@ public class Operations {
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
             boolean res = ConcolicOperations.doCompare(oprString, el1, el2);
-
             // If instruction is condition for a loop, then we only create a new expression the first time
             // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
-            if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
-                stack.getExpressionCreatedVector().set(stack.getPc(), true);
+
+
+
+            // if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
+                // stack.getExpressionCreatedVector().set(stack.getPc(), true);
                 BoolExpr expr = generateIfElseBoolExpression(el1,el2,oprString,res);
                 System.out.println("Adding expression: " + expr);
                 stack.addBoolExpr(expr);
-            }
-
-            // if (Interpreter.astar) {
-            //     for (BranchNode node : Pathcreator.getBranches().get(stack.getAm())) {
-            //         if (node.getInstructionIndex() == stack.getPc()) {
-            //             node.setCondition(stack.getBoolExpr());
-            //             BranchNode falseChild = node.getFalseChild();
-            //             BranchNode trueChild = node.getTrueChild();
-            //             if ((trueChild.getHeuristicCost() > falseChild.getHeuristicCost() && res) 
-            //                 || (trueChild.getHeuristicCost() < falseChild.getHeuristicCost() && !res)) {
-                                
-            //                 Interpreter.setInterrupt(true);
-            //             } 
-            //         }
-            //     }
             // }
+
             if (res) {
                 stack.setPc(target.intValue()-1);
             }                                                                
@@ -189,12 +179,14 @@ public class Operations {
             
             // If instruction is condition for a loop, then we only create a new expression the first time
             // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
-            if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
-                stack.getExpressionCreatedVector().set(stack.getPc(), true);
+
+
+            // if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
+                // stack.getExpressionCreatedVector().set(stack.getPc(), true);
                 BoolExpr expr = generateIfElseBoolExpression(el,zero,oprString,res);
                 System.out.println("Adding expression: " + expr);
                 stack.addBoolExpr(expr);
-            }
+            // }
             if (res) {
                 stack.setPc(target-1);
             }                                                                    

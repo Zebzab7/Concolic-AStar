@@ -27,6 +27,7 @@ public class Pathcreator {
     static HashMap<AbsoluteMethod,ArrayList<BranchNode>> branches;
     static HashMap<AbsoluteMethod,HashMap<Integer,Integer>> jumps;
 
+    
     // Stores the method invoked, as well as a reference to the location from which it was invoked
     static HashMap<AbsoluteMethod,ArrayList<Reference>> methodInvocations;
 
@@ -150,6 +151,36 @@ public class Pathcreator {
         }
         return null;
     }
+
+    public Element[] solverCheck(BoolExpr expr){
+        Context ctx = Interpreter.getCtx();
+        Solver solver = ctx.mkSolver();
+        solver.add(expr);
+        ArrayList<Element> elements = new ArrayList<Element>();
+        if(solver.check() == Status.SATISFIABLE){
+            Model model = solver.getModel();
+            //Update the values of the elements if they changed
+            for (int i = 0; i < elements.size(); i++) {
+                Element e = elements.get(i);
+                switch (e.getType()) {
+                    case "int":
+                        IntExpr intExpr = (IntExpr) e.getSymbolicValue();
+                        if (model.getConstInterp(intExpr) != null) {
+                            e.setValue(Integer.parseInt(model.getConstInterp(intExpr).toString()));
+                        }
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Type not handled");
+                }
+            }
+            Element[] args = new Element[model.getNumConsts()];
+            for(int i = 0; i < model.getNumConsts(); i++){
+                args[i] = elements.get(i);
+            }
+            return args;
+        }
+        return null;
+    }
     
     public ArrayList<BranchNode> searchMethodInvocations(int cost, AbsoluteMethod am, 
         JSONArray currentBytecode, int initialIndex, BranchNode currentBranch) {
@@ -222,20 +253,19 @@ public class Pathcreator {
     public BoolExpr aStar(BranchNode startNode, BranchNode targetNode) {
         Interpreter.setAstarInterpretation(true);
         Context ctx = Interpreter.getCtx();
-        System.out.println("here");
+
+        AbsoluteMethod am = startNode.getAm();
+        Bytecode bc = Interpreter.findMethod(am);
 
         // Generate list of alphabet: 
         String[] alphabet = new String[26];
         for (int i = 0; i < alphabet.length; i++) {
             alphabet[i] = "" + (char)('a' + i);
         }
-        
-        AbsoluteMethod am = startNode.getAm();
-        Bytecode bc = Interpreter.findMethod(am);
-        
+
+        // Read initial arguments
         ArrayList<Element> elements = new ArrayList<Element>();
         ArrayList<String> argTypes = bc.getArgsTypes();
-        
         int count = 0;
         for (String type : argTypes) {
             switch (type) {
@@ -257,6 +287,7 @@ public class Pathcreator {
         boolean solutionFound = false;
         BoolExpr expr = null;
 
+        // Prepare Astar
         PriorityQueue<BranchNode> frontier = new PriorityQueue<BranchNode>();
         PriorityQueue<BranchNode> explored = new PriorityQueue<BranchNode>();
 
@@ -268,78 +299,72 @@ public class Pathcreator {
         HashMap<BranchNode, Integer> fScore = new HashMap<BranchNode, Integer>();
         fScore.put(startNode, startNode.getH());
 
+        frontier.add(startNode);
+        
         if (frontier.isEmpty()){
             throw new IllegalArgumentException("Frontier is empty at start");
         }
-        frontier.add(startNode);
-        
+
+        // Astar loop
         while (!frontier.isEmpty()) {
+            System.out.println("yoo");
             BranchNode currentNode = frontier.poll();
-            
             if(currentNode.equals(targetNode)){
-                reconstructPath(cameFrom, currentNode);
+                return reconstructPath(cameFrom, currentNode);
             }
-            
-            Interpreter.interpretStartToTarget(startNode.getAm(), args, targetNode);
+            explored.add(currentNode);
+            for (BranchNode neighbor: currentNode.getChildren()) {
+                if (explored.contains(neighbor)) {
+                    continue;
+                }
+
+                BoolExpr pathToNeighbor = reconstructPath(cameFrom, neighbor);
+                
+                // Explore the neighbor
+                if (currentNode.getTrueChild().equals(neighbor)) {
+                    pathToNeighbor = ctx.mkAnd(pathToNeighbor, currentNode.getCondition());
+                } else if (currentNode.getFalseChild().equals(neighbor)) {
+                    pathToNeighbor = ctx.mkAnd(pathToNeighbor, ctx.mkNot(currentNode.getCondition()));
+                } 
+                args = solverCheck(pathToNeighbor);
+                Interpreter.interpretStartToTarget(startNode.getAm(), args, neighbor);
+                int tentativeGScore = Interpreter.getActualCost();
+
+                if (tentativeGScore < gScore.get(neighbor)) {
+                    cameFrom.put(neighbor, currentNode);
+                    gScore.put(neighbor, tentativeGScore);
+                    fScore.put(neighbor, tentativeGScore + neighbor.getH());
+                    if (!frontier.contains(neighbor)) {
+                        frontier.add(neighbor);
+                    }
+                }
+            }
         }
-        //assume goal is not found  
-        System.out.println("Not path to goal was found");   
+
+        // Assume goal was not found  
+        System.out.println("No path to goal was found");   
         throw new IllegalArgumentException("No path to goal was found");     
-        // while (!solutionFound) {
-        //     ProgramStack stack = Interpreter.interpretFunction(am, args);
-        //     expr = stack.getBoolExpr();
-
-        //     ArrayList<BoolExpr> boolExprList = stack.getBoolExprList();
-        //     int n = boolExprList.size();
-        //     BoolExpr boolExpr = null;
-        //     for (int i = 0; i < n-1; i++) {
-        //         if (boolExpr != null) {
-        //             boolExpr = ctx.mkAnd(boolExpr, boolExprList.get(i));
-        //         } else {
-        //             boolExpr = boolExprList.get(i);
-        //         }
-        //     }
-        //     solver.add(ctx.mkAnd(boolExpr, ctx.mkNot(boolExprList.get(n-1))));
-        //     Status satisfiable = solver.check();
-        //     if (satisfiable == Status.SATISFIABLE) {
-        //         System.out.println("SATISFIABLE");
-
-        //         Model model = solver.getModel();
-        //         System.out.println("model"+ model);
-
-        //         // Update the values of the elements if they changed
-        //         for (int i = 0; i < elements.size(); i++) {
-        //             Element e = elements.get(i);
-        //             switch (e.getType()) {
-        //                 case "int":
-        //                     IntExpr intExpr = (IntExpr) e.getSymbolicValue();
-        //                     if (model.getConstInterp(intExpr) != null) {
-        //                         e.setValue(Integer.parseInt(model.getConstInterp(intExpr).toString()));
-        //                     }
-        //                     break;
-        //                 default:
-        //                     throw new IllegalArgumentException("Type not handled");
-        //             }
-        //         }
-        //     } else {
-        //         System.out.println("NOT SATISFIABLE");
-        //         break;
-        //     }
-        // }
-        // return expr;
     }
     
-    public static ArrayList<BoolExpr> reconstructPath(HashMap<BranchNode, BranchNode> cameFrom, BranchNode currentNode) {
-        ArrayList<BoolExpr> totalPath = new ArrayList<BoolExpr>();
-        totalPath.add(currentNode.getCondition());
+    public static BoolExpr reconstructPath(HashMap<BranchNode, BranchNode> cameFrom, BranchNode currentNode) {
+        Context ctx = Interpreter.getCtx();
+        BoolExpr totalPath = ctx.mkTrue();
+
         while (cameFrom.containsKey(currentNode)) {
+            BranchNode previousNode = cameFrom.get(currentNode);
             currentNode = cameFrom.get(currentNode);
-            totalPath.add(currentNode.getCondition());
+            if (currentNode.getTrueChild().equals(previousNode)) {
+                totalPath = ctx.mkAnd(totalPath, currentNode.getCondition());
+            } else if (currentNode.getFalseChild().equals(previousNode)) {
+                totalPath = ctx.mkAnd(totalPath, ctx.mkNot(currentNode.getCondition()));
+            } else {
+                throw new IllegalArgumentException("Previous node is not a child of current node");
+            }
         }
         return totalPath;
     }
 
-    //Find paths to an if or ifz condition
+    // Find paths to an if or ifz condition
     public HashMap<Integer,Integer> findIfPaths(int size, AbsoluteMethod am, Bytecode bc){
         HashMap<Integer,Integer> ifmap = new HashMap<Integer,Integer>();
         JSONObject bytecode = null;
