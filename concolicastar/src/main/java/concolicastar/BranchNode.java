@@ -1,8 +1,11 @@
 package concolicastar;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
 
 public class BranchNode implements Comparable<BranchNode> {
 
@@ -18,10 +21,10 @@ public class BranchNode implements Comparable<BranchNode> {
     private int h;
     private int cost;
 
-    private boolean evaluationToChild;
-    private boolean evaluationToParent;
-    
-    ArrayList<BoolExpr> condition;
+    ArrayList<BoolExpr> lastConditions;
+    BoolExpr conditionExpressedAsInputVariables;
+
+    private static Context ctx = Interpreter.getCtx();
 
     public BranchNode(String type, AbsoluteMethod am, int instructionIndex, int cost) {
         this.type = type;
@@ -76,18 +79,6 @@ public class BranchNode implements Comparable<BranchNode> {
     public BranchNode getFalseChild() {
         return falseChild;
     }
-    public void setEvaluationToParent(boolean evaluationToParent) {
-        this.evaluationToParent = evaluationToParent;
-    }
-    public boolean getEvaluationToParent() {
-        return evaluationToParent;
-    }
-    public void setEvaluationToChild(boolean evaluation) {
-        this.evaluationToChild = evaluation;
-    }
-    public boolean getEvaluateToTrue() {
-        return evaluationToChild;
-    }
     public AbsoluteMethod getAm() {
         return am;
     }
@@ -123,23 +114,31 @@ public class BranchNode implements Comparable<BranchNode> {
     public void setH(int cost) {
         this.h = cost;
     }
-    public void addCondition(BoolExpr condition) {
-        if (this.condition == null) {
-            this.condition = new ArrayList<BoolExpr>();
+    public void addLastCondition(BoolExpr condition) {
+        if (this.lastConditions == null) {
+            this.lastConditions = new ArrayList<BoolExpr>();
         }
-        this.condition.add(condition);
+        this.lastConditions.add(condition);
     }
     public BoolExpr getLastCondition() {
-        return condition.get(condition.size()-1);
+        return lastConditions.get(lastConditions.size()-1);
     }
-    public ArrayList<BoolExpr> getCondition() {
-        return condition;
+    public ArrayList<BoolExpr> getConditions() {
+        return lastConditions;
     }
     public int getCost() {
         return cost;
     }
     public void setCost(int actualCost) {
         this.cost = actualCost;
+    }
+
+    public void setConditionExpressedAsInputVariables(BoolExpr conditionExpressedAsInputVariables) {
+        this.conditionExpressedAsInputVariables = conditionExpressedAsInputVariables;
+    }
+
+    public BoolExpr getConditionExpressedAsInputVariables() {
+        return conditionExpressedAsInputVariables;
     }
     
     @Override
@@ -153,6 +152,46 @@ public class BranchNode implements Comparable<BranchNode> {
         return false;
     }
 
+    public static ArrayList<BranchNode> deepCopyBranchNodes(ArrayList<BranchNode> originalNodes) {
+        Map<BranchNode, BranchNode> copyMap = new HashMap<>();
+
+        // First, create a shallow copy of each node and store it in the map
+        for (BranchNode node : originalNodes) {
+            BranchNode copy = new BranchNode(node.getType(), node.getAm(), node.getInstructionIndex(), node.getH());
+            if (node.getConditionExpressedAsInputVariables() != null) {
+                copy.setConditionExpressedAsInputVariables(node.getConditionExpressedAsInputVariables());
+            }
+            copyMap.put(node, copy);
+        }
+
+        // Now, update the references in the copies
+        for (BranchNode original : originalNodes) {
+            BranchNode copy = copyMap.get(original);
+
+            if (original.getTrueChild() != null) {
+                copy.setTrueChild(copyMap.get(original.getTrueChild()));
+            }
+            if (original.getFalseChild() != null) {
+                copy.setFalseChild(copyMap.get(original.getFalseChild()));
+            }
+            if (original.getParent() != null) {
+                for (BranchNode parent : original.getParent()) {
+                    copy.addParent(copyMap.get(parent));
+                }
+            }
+
+            // Copy last conditions
+            if (original.getConditions() != null) {
+                for (int i = original.getConditions().size() - 1; i >= 0; i--) {
+                    copy.addLastCondition(original.getConditions().get(i));
+                }
+            }
+        }
+
+        // Return the new list of copied nodes
+        return new ArrayList<>(copyMap.values());
+    }
+
     @Override
     public int hashCode() {
         return am.hashCode() + instructionIndex;
@@ -164,7 +203,8 @@ public class BranchNode implements Comparable<BranchNode> {
                 "Type: " + type + "\n" +
                 "Method: " + am.toString() + "\n" +
                 "Instruction Index: " + instructionIndex + "\n" +
-                "Condition: " + condition + "\n" +
+                "LastCondition: " + lastConditions + "\n" +
+                "Condition: " + conditionExpressedAsInputVariables + "\n" + 
                 "Cost: " + h + "\n";
     }
 

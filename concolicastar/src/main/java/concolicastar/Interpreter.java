@@ -27,6 +27,8 @@ public class Interpreter {
     public static int actualCost = 0;
 
     public static long lastLoopTarget = 0;
+    
+    public static BoolExpr lastCondition;
 
     private static Context ctx;
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
@@ -114,7 +116,10 @@ public class Interpreter {
      * @param startNode
      * @return
      */
-    public static ProgramStack interpretStartToTarget(AbsoluteMethod am, Element[] args, BranchNode targetNode) {
+    public static ProgramStack interpretStartToTarget(AbsoluteMethod am, Element[] args, BranchNode targetNode, 
+        HashMap<AbsoluteMethod, ArrayList<BranchNode>> branches) {
+        System.out.println("Interpreting from start to target: " + targetNode);
+        
         actualCost = 0;
 
         if (args == null) {
@@ -129,34 +134,50 @@ public class Interpreter {
         }
 
         boolean targetEncountered = false;
+        boolean firstNodeIsTarget = false;
 
         BranchNode currentBranchNode = null;
         BranchNode lastBranchNode = null;
-        BoolExpr lastCondition = null;
+        lastCondition = null;
 
         boolean lastEvaluation = false;
+        int iteration = 0;
         while (stack.getPc() < bc.getBytecode().size()) {
             JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
             String oprString = (String) bytecode.get("opr");
+            boolean branchEncountered = false;
 
             if ((oprString.equals("if") || oprString.equals("ifz"))) {
-                currentBranchNode = Pathcreator.findBranchNodeByAMAndIndex(am, stack.getPc());
+                currentBranchNode = Pathcreator.findBranchNodeByAMAndIndex(am, stack.getPc(), branches);
+                branchEncountered = true;
 
                 // Update true/false child/parents references:
                 if (lastBranchNode != null) {
+                    System.out.println("entering update at iteration: " + iteration + " with lastEvaluation: " + lastEvaluation);
+                    System.out.println("Last condition? : " + lastCondition);
+                    System.out.println("Current branchNode: " + currentBranchNode);
                     if (lastEvaluation) {
-                        System.out.println("Adding True child: " + stack.getBoolExpr());
+                        System.out.println("Adding True child: " + lastCondition);
                         lastBranchNode.setTrueChild(currentBranchNode);
                         currentBranchNode.addParent(lastBranchNode);
+                        currentBranchNode.addLastCondition(lastCondition);
                     } else {
-                        System.out.println("Adding False child: " + stack.getBoolExpr());
+                        System.out.println("Adding False child: " + lastCondition);
                         lastBranchNode.setFalseChild(currentBranchNode);
                         currentBranchNode.addParent(lastBranchNode);
+                        currentBranchNode.addLastCondition(lastCondition);
                     }
+                    if (currentBranchNode.equals(targetNode)) {
+                        targetNode.setCost(iteration);
+                        // targetNode.addLastCondition(lastCondition);
+                        targetEncountered = true;
+                    }
+                } else if (currentBranchNode.equals(targetNode)){
+                    System.out.println("Last branch node is null");
+                    firstNodeIsTarget = true;
                 }
-                if (currentBranchNode.equals(targetNode)) {
-                    targetEncountered = true;
-                }
+                
+                lastBranchNode = currentBranchNode;
             }
 
             Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods(), ctx);
@@ -167,28 +188,38 @@ public class Interpreter {
                 return stack;
             }
 
-            if (targetEncountered) {
-                targetNode.setCost(actualCost);
+            if (branchEncountered) {
                 if (ConcolicOperations.getComparisonFlag()) {
                     lastEvaluation = false;
-                    lastCondition = ctx.mkNot(stack.getBoolExprList().get(stack.getBoolExprList().size()-1));
-                    targetNode.addCondition(lastCondition);
-                    System.out.println("False: " + stack.getBoolExpr());
+                    BoolExpr expr = stack.getBoolExprList().get(stack.getBoolExprList().size()-1);
+                    currentBranchNode.setConditionExpressedAsInputVariables(ctx.mkNot(expr));
+                    // lastCondition = ctx.mkNot(expr);
+                    lastCondition = expr;
+                    System.out.println("False with last condition: " + lastCondition);
                 } else {
                     lastEvaluation = true;
-                    lastCondition = stack.getBoolExprList().get(stack.getBoolExprList().size()-1);
-                    targetNode.addCondition(lastCondition);
-                    System.out.println("True: " + stack.getBoolExpr());
+                    BoolExpr expr = stack.getBoolExprList().get(stack.getBoolExprList().size()-1);
+                    currentBranchNode.setConditionExpressedAsInputVariables(expr);
+                    lastCondition = expr;
+                    System.out.println("True with last condition: " + lastCondition);
+                }
+
+                if (targetEncountered) {
+                    System.out.println("Returning stack because targetNode is encountered");
+                    return stack;
+                }
+
+                // Target node is the first node
+                if (firstNodeIsTarget) {
+                    System.out.println("Returning stack because targetNode is first node");
+                    return stack;
                 }
                 System.out.println("Full expression: " + stack.getBoolExpr());
-                return stack;
+                // return stack;
             } 
 
-
-
-            lastBranchNode = currentBranchNode;
             stack.setPc(stack.getPc() + 1);
-            // System.out.println(stack.toString());
+            iteration++;
         }
         return stack;
     }
@@ -302,5 +333,9 @@ public class Interpreter {
 
     public static ArrayList<Bytecode> getBytecodes() {
         return bytecodes;
+    }
+
+    public static BoolExpr getLastCondition() {
+        return lastCondition;
     }
 }
