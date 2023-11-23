@@ -36,7 +36,6 @@ public class Operations {
         } catch (Exception e) {
             System.out.println("Error: Method might not exist "+ e + " " + opr);
             e.printStackTrace();
-
         }
 
         return stack;

@@ -139,19 +139,77 @@ public class Simple {
     public static int ifInLoopSimple3(int n) {
         int x = 10;
         while (n > 0) {
-            if (n > 2) {
-                if(n > 0) {  // Search point
+            x++;
+            x++;
+            x++;
+            x++;
+            x++;
+            x++;
+            if (n > 3) {
+                x++;
+                x++;
+                x++;
+                x++;
+                if(n > 5) {  // Search point
                     x *= 5;
+                    x++;
+                    x++;
+                    if (n > 200) {
+                        x += 94;
+                    } else {
+                        x += 0;
+                    }
+                } else {
+                    x += 20;
+                    x++;
+                    x++;
+                    if (n > 50) {
+                        x += 1;
+                    } 
                 }
             } else { 
                 if(n > 0) {  // Search point
+                    x++;
+                    x++;
                     x *= 6;
+                    if (n > 30) {
+                        x += 10;
+                    } else {
+                        x++;
+                    x++;
+                        x += 20;
+                    }
+                } else {
+                    x += 30;
+                    if (n > 100) {
+                        x += 11;
+                    } 
                 }
             }
-            n--;
+            n++;
         }
         return x;
     }
+
+    // @Case 
+    // public static int ifInLoopSimple3(int n) {
+    //     int x = 10;
+    //     int y = 1;
+    //     while (n > 0) {
+    //         if (y > 0) {
+    //             if(n > 0) {  // Search point
+    //                 x *= 5;
+    //             }
+    //         } else { 
+    //             if(n > 0) {  // Search point
+    //                 x *= 6;
+    //             }
+    //         }
+    //         y = -1;
+    //         n--;
+    //     }
+    //     return x;
+    // }
 
     public static void main(String [] args) {
         System.out.println("noop");

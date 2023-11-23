@@ -31,7 +31,7 @@ public class ConcolicExecution {
         // testFunction(interpreter, new AbsoluteMethod("Simple", "min"));
         // testFunction(interpreter, new AbsoluteMethod("Simple", "factorial")); 
         // testFunction(interpreter, new AbsoluteMethod("Simple", "someFunction"));
-        testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoop2"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoop2"));
     }
     private static void testCalls(Interpreter interpreter) {
         System.out.println("Testing calls");
@@ -52,7 +52,7 @@ public class ConcolicExecution {
         Number num = (Number) el.getValue();
         assertTrue(num.intValue() == 89);
     }
-    private static void testFunction(Interpreter interpreter, AbsoluteMethod am) {
+    public static void testFunction(Interpreter interpreter, AbsoluteMethod am, BranchNode targetNode) {
         System.out.println("\nTesting " + am.getMethodName());
         Context ctx = new Context();
         Interpreter.setContext(ctx);

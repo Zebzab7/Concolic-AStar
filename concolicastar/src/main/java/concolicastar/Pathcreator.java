@@ -440,6 +440,173 @@ public class Pathcreator {
         throw new IllegalArgumentException("No path to goal was found");     
     }
 
+    public BoolExpr BFS(BranchNode startNode, BranchNode targetNode, HashSet<BranchNode> explored) {
+
+        System.out.println("\n\nCommencing BFS search!!");
+
+        HashMap<AbsoluteMethod, ArrayList<BranchNode>> newBranches = createDeepCopyOfBranches();
+
+        // Update references to startnode and targetnode to copy versions:
+        startNode = findBranchNode(startNode.getAm(), startNode, newBranches);
+        targetNode = findBranchNode(targetNode.getAm(), targetNode, newBranches);
+        
+        Interpreter.setAstarInterpretation(true);
+        Context ctx = Interpreter.getCtx();
+
+        AbsoluteMethod am = startNode.getAm();
+        Bytecode bc = Interpreter.findMethod(am);
+
+        // Generate list of alphabet: 
+        String[] alphabet = new String[26];
+        for (int i = 0; i < alphabet.length; i++) {
+            alphabet[i] = "" + (char)('a' + i);
+        }
+
+        // Read initial arguments
+        ArrayList<Element> elements = new ArrayList<Element>();
+        ArrayList<String> argTypes = bc.getArgsTypes();
+        int count = 0;
+        ArrayList<IntExpr> intExprs = new ArrayList<IntExpr>();
+        for (String type : argTypes) {
+            switch (type) {
+                case "int":
+                    IntExpr intExpr = ctx.mkIntConst(alphabet[count]);
+                    intExprs.add(intExpr);
+                    elements.add(new Element("int", 0, intExpr));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Type not handled");
+            }
+            count++;
+        }
+        Element[] args = new Element[elements.size()];
+        for (int i = 0; i < elements.size(); i++) {
+            args[i] = elements.get(i);
+        }
+
+        Solver solver = ctx.mkSolver();
+        boolean solutionFound = false;
+        BoolExpr expr = null;
+
+        // ** INITIALIZE Astar **
+        PriorityQueue<BranchNode> frontier = new PriorityQueue<BranchNode>();
+        HashMap<BranchNode, ArrayList<BranchNode>> cameFrom = new HashMap<BranchNode, ArrayList<BranchNode>>();
+        for (BranchNode branch : newBranches.get(am)) {
+            cameFrom.put(branch, new ArrayList<BranchNode>());
+        }
+        HashMap<BranchNode, ArrayList<BranchNode>> loopsEncountered = new HashMap<BranchNode, ArrayList<BranchNode>>();
+        for (BranchNode branch : newBranches.get(am)) {
+            loopsEncountered.put(branch, new ArrayList<BranchNode>());
+        }
+
+        HashMap<BranchNode, Integer> gScore = new HashMap<BranchNode, Integer>();
+        for (BranchNode branch : newBranches.get(am)) {
+            gScore.put(branch, Integer.MAX_VALUE);
+        }
+        gScore.put(startNode, 0);
+
+        HashMap<BranchNode, Integer> fScore = new HashMap<BranchNode, Integer>();
+        for (BranchNode branch : newBranches.get(am)) {
+            fScore.put(branch, Integer.MAX_VALUE);
+        }
+        fScore.put(startNode, startNode.getH());
+
+        frontier.add(startNode);
+        if (frontier.isEmpty()){
+            throw new IllegalArgumentException("Frontier is empty at start");
+        }
+
+        int iterations = 0;
+        Interpreter.interpretStartToTarget(startNode.getAm(), args, startNode, newBranches);
+
+        // ** RUN Astar ** 
+        while (!frontier.isEmpty()) {
+            BranchNode currentNode = frontier.poll();
+            System.out.println("\n\nPerforming iteration: " + iterations + " with branch: " + currentNode.toString());
+
+            // Check if we have found the target node
+            if(currentNode.equals(targetNode)){
+                System.out.println("Found path to goal!");
+                HashMap<BranchNode, ArrayList<BranchNode>> cameFromCopy = createCameFromCopy(cameFrom);
+                return reconstructBoolExpr(cameFromCopy, currentNode);
+            }
+
+            // Mark down that this was a loop, if it was a loop
+            if(currentNode.getType().equals("loop")){
+                System.out.println("Found loop: " + currentNode.toString());
+                if(!loopsEncountered.containsKey(currentNode)){
+                    loopsEncountered.put(currentNode, new ArrayList<BranchNode>());
+                }
+                loopsEncountered.get(currentNode).add(currentNode);
+            }
+
+            explored.add(currentNode);
+            System.out.println("Explored: " + explored.toString());
+            
+            // Explore the neighbors
+            for (BranchNode neighbor: currentNode.getChildren()) {
+
+                System.out.println("Checking out neighbor: " + neighbor);
+                if (explored.contains(neighbor)) {
+                    System.out.println("Neighbor: " + neighbor.toString() + " has already been explored");
+
+                    // If the currentNode is a loop that has been encountered before 
+                    // do a new search with a new explore list
+                    ArrayList<BranchNode> loop = loopsEncountered.get(currentNode);
+                    if (loop != null && loop.get(loop.size()-1).equals(neighbor)) {
+
+                        // Create copy updated version of explore list and cameFrom
+                        HashMap<BranchNode, ArrayList<BranchNode>> cameFromCopy = createCameFromCopy(cameFrom);
+                        ArrayList<BranchNode> path = reconstructPath(cameFromCopy, currentNode);
+                        HashSet<BranchNode> exploredCopy = pruneExplored(path, loop);
+
+                        System.out.println("Starting new Astar search because loop was encountered...");
+                        return ctx.mkAnd(aStar(neighbor, targetNode, exploredCopy));
+                    } else {
+                        continue;
+                    }
+                }
+                
+                //** Calculate cost of taking extra step to neighbors
+                // First get the part up until current node
+                BoolExpr pathToNeighbor = reconstructBoolExpr(createCameFromCopy(cameFrom), currentNode);
+                if (currentNode.getTrueChild() != null && currentNode.getTrueChild().equals(neighbor)) {
+                    pathToNeighbor = ctx.mkAnd(pathToNeighbor, currentNode.getConditionExpressedAsInputVariables());
+                } else if (currentNode.getFalseChild() != null && currentNode.getFalseChild().equals(neighbor)) {
+                    pathToNeighbor = ctx.mkAnd(pathToNeighbor, ctx.mkNot(currentNode.getConditionExpressedAsInputVariables()));
+                } else {
+                    throw new IllegalArgumentException("Neighbor is not a child of current node");
+                }
+                
+                // System.out.println("Constraints (pathToNeighbor): " + pathToNeighbor.toString());
+                // System.out.println("Children: " + currentNode.getChildren().toString());
+                // System.out.println("And here: " + currentNode.getConditionExpressedAsInputVariables());
+
+                // System.out.println("Constraints (pathToNeighbor): " + pathToNeighbor.toString());
+                args = solverCheck(pathToNeighbor, elements, intExprs);
+                // System.out.println("Solution to constraints: " + Arrays.toString(args));
+
+                Interpreter.interpretStartToTarget(startNode.getAm(), args, neighbor, newBranches);
+                int tentativeGScore = gScore.get(currentNode) + neighbor.getH();
+                if (tentativeGScore < gScore.get(neighbor)) {
+                    // Add last condition to node
+
+                    cameFrom.get(neighbor).add(currentNode);
+                    gScore.put(neighbor, tentativeGScore);
+                    fScore.put(neighbor, tentativeGScore + neighbor.getH());
+                    if (!frontier.contains(neighbor)) {
+                        frontier.add(neighbor);
+                    }
+                }
+            }
+            iterations++;
+        }
+
+        // Assume goal was not found  
+        System.out.println("No path to goal was found");   
+        throw new IllegalArgumentException("No path to goal was found");     
+    }
+
     public Element[] solverCheck(BoolExpr expr, ArrayList<Element> elements, ArrayList<IntExpr> intExprs){
         Context ctx = Interpreter.getCtx();
         Solver solver = ctx.mkSolver();
@@ -512,7 +679,9 @@ public class Pathcreator {
         while (conditionList != null && conditionList.size() > 0) {
             System.out.println("Current node: " + currentNode.toString());
             System.out.println("Current condition: " + conditionList);
-            totalPath = ctx.mkAnd(totalPath, currentNode.getLastCondition());
+            System.out.println(" came from list " + cameFrom.get(currentNode));
+            System.out.println("conditions list : " + currentNode.getConditions().toString());
+            totalPath = ctx.mkAnd(totalPath, currentNode.popLastCondition());
             currentNode = cameFrom.get(currentNode).remove(cameFrom.get(currentNode).size()-1);
             conditionList = currentNode.getConditions();
         }

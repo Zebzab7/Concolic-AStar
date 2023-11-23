@@ -120,8 +120,8 @@ public class BranchNode implements Comparable<BranchNode> {
         }
         this.lastConditions.add(condition);
     }
-    public BoolExpr getLastCondition() {
-        return lastConditions.get(lastConditions.size()-1);
+    public BoolExpr popLastCondition() {
+        return lastConditions.remove(lastConditions.size()-1);
     }
     public ArrayList<BoolExpr> getConditions() {
         return lastConditions;
