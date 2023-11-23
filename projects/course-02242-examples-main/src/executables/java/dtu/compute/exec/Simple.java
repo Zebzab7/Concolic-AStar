@@ -116,6 +116,43 @@ public class Simple {
         return x;
     }
 
+    @Case 
+    public static int ifInLoopSimple2(int n) {
+        int x = 10;
+        while (n > 0) {
+            if (n > 10) break;
+            if (n > 2) {
+                if(n > 0) {  // Search point
+                    x *= 5;
+                }
+            } else { 
+                if(n > 0) {  // Search point
+                    x *= 6;
+                }
+            }
+            n--;
+        }
+        return x;
+    }
+
+    @Case 
+    public static int ifInLoopSimple3(int n) {
+        int x = 10;
+        while (n > 0) {
+            if (n > 2) {
+                if(n > 0) {  // Search point
+                    x *= 5;
+                }
+            } else { 
+                if(n > 0) {  // Search point
+                    x *= 6;
+                }
+            }
+            n--;
+        }
+        return x;
+    }
+
     public static void main(String [] args) {
         System.out.println("noop");
         noop();

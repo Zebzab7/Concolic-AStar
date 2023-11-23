@@ -16,12 +16,12 @@ public class BranchNode implements Comparable<BranchNode> {
     private BranchNode trueChild;
     private BranchNode falseChild;
     private int h;
-    private int actualCost;
+    private int cost;
 
     private boolean evaluationToChild;
     private boolean evaluationToParent;
     
-    BoolExpr condition;
+    ArrayList<BoolExpr> condition;
 
     public BranchNode(String type, AbsoluteMethod am, int instructionIndex, int cost) {
         this.type = type;
@@ -30,7 +30,8 @@ public class BranchNode implements Comparable<BranchNode> {
         parents = null;
         trueChild = null;
         falseChild = null;
-        this.h = 0;
+        this.cost = cost;
+        this.h = cost;
     }
 
     public BranchNode(AbsoluteMethod am, int instructionIndex) {
@@ -112,7 +113,9 @@ public class BranchNode implements Comparable<BranchNode> {
         if (parents == null) {
             parents = new ArrayList<BranchNode>();
         }
-        this.parents.add(parent);
+        if (!parents.contains(parent)) {
+            this.parents.add(parent);
+        }
     }
     public void setType(String type) {
         this.type = type;
@@ -120,17 +123,23 @@ public class BranchNode implements Comparable<BranchNode> {
     public void setH(int cost) {
         this.h = cost;
     }
-    public void setCondition(BoolExpr condition) {
-        this.condition = condition;
+    public void addCondition(BoolExpr condition) {
+        if (this.condition == null) {
+            this.condition = new ArrayList<BoolExpr>();
+        }
+        this.condition.add(condition);
     }
-    public BoolExpr getCondition() {
+    public BoolExpr getLastCondition() {
+        return condition.get(condition.size()-1);
+    }
+    public ArrayList<BoolExpr> getCondition() {
         return condition;
     }
-    public int getActualCost() {
-        return actualCost;
+    public int getCost() {
+        return cost;
     }
-    public void setActualCost(int actualCost) {
-        this.actualCost = actualCost;
+    public void setCost(int actualCost) {
+        this.cost = actualCost;
     }
     
     @Override
@@ -151,10 +160,11 @@ public class BranchNode implements Comparable<BranchNode> {
 
     @Override
     public String toString() {
-        return "Branch: \n" +
+        return "\nBranch>: \n" +
                 "Type: " + type + "\n" +
                 "Method: " + am.toString() + "\n" +
                 "Instruction Index: " + instructionIndex + "\n" +
+                "Condition: " + condition + "\n" +
                 "Cost: " + h + "\n";
     }
 

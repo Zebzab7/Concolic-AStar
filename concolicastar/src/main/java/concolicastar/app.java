@@ -1,7 +1,9 @@
 package concolicastar;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
+import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 
 import java.time.Instant;
@@ -19,9 +21,14 @@ public class App
 
         Pathcreator pc = new Pathcreator();
         BranchNode targetNode 
-            = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple"), 11);
+            = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple3"), 15);
         BranchNode startNode = pc.buildHeuristicMap(targetNode);
-        pc.aStar(startNode, targetNode);
+        BranchNode testNode = Pathcreator.findBranchNodeByAMAndIndex(new AbsoluteMethod("Simple", "ifInLoopSimple3"), 6);
+        // System.out.println("Testing child of " + testNode);
+        // System.out.println("True child: " + testNode.getTrueChild());
+        // System.out.println("False child: " + testNode.getFalseChild());
+        BoolExpr expr = pc.aStar(startNode, targetNode, new HashSet<BranchNode>());
+        // System.out.println("Final expr: " + expr);
 
         // interpreter.interpret("method");
         ConcolicExecution.testList(interpreter);
