@@ -23,6 +23,12 @@ import com.microsoft.z3.Status;
 public class Pathcreator {
 
     static ArrayList<Bytecode> bytecodes = Interpreter.getBytecodes();
+
+    public static int totalActualCost = 0;
+    public static int totalNodesExplored = 0;
+
+    public static int actualCost = 0;
+    public static boolean foundTarget = false;
     
     // Store branches
     static HashMap<AbsoluteMethod,ArrayList<BranchNode>> originalBranches;
@@ -39,6 +45,19 @@ public class Pathcreator {
         findMethodsContainingMethods();
         System.out.println(methodstacktoString());
     }
+
+    // public ArrayList<BranchNode> findBranches(AbsoluteMethod am) {
+    //     HashMap<AbsoluteMethod,ArrayList<BranchNode>> branchesCopy = new HashMap<AbsoluteMethod,ArrayList<BranchNode>>();
+    //     // Get all branches out into ong long list:
+    //     ArrayList<BranchNode> allNodes = new ArrayList<BranchNode>();
+    //     for (AbsoluteMethod am : originalBranches.keySet()) {
+    //         ArrayList<BranchNode> branchList = originalBranches.get(am);
+    //         for (BranchNode branchNode : branchList) {
+    //             allNodes.add(branchNode);
+    //         }
+    //     }
+    //     return allNodes;
+    // }
 
     public HashMap<AbsoluteMethod,ArrayList<BranchNode>> createDeepCopyOfBranches() {
         HashMap<AbsoluteMethod,ArrayList<BranchNode>> branchesCopy = new HashMap<AbsoluteMethod,ArrayList<BranchNode>>();
@@ -156,6 +175,7 @@ public class Pathcreator {
         int cost = 0;
         while (branchStack.size() > 0) {
             BranchNode currentBranch = branchStack.remove(0);
+            cost = currentBranch.getH();
             System.out.println("Current branch in backwards search...: " + currentBranch.toString());
             int instructionIndex = currentBranch.getInstructionIndex();
 
@@ -169,7 +189,6 @@ public class Pathcreator {
                 
             if (foundBranches == null) {
                 MakeGraph.generateGraph(currentBranch);
-                System.out.println(currentBranch);
                 return currentBranch;
             }
 
@@ -277,6 +296,8 @@ public class Pathcreator {
 
         System.out.println("\n\nCommencing Astar search!!");
 
+        totalNodesExplored = 0;
+
         HashMap<AbsoluteMethod, ArrayList<BranchNode>> newBranches = createDeepCopyOfBranches();
 
         // Update references to startnode and targetnode to copy versions:
@@ -350,10 +371,19 @@ public class Pathcreator {
         }
 
         int iterations = 0;
+        totalNodesExplored = 0;
         Interpreter.interpretStartToTarget(startNode.getAm(), args, startNode, newBranches);
+        totalNodesExplored += Interpreter.getNodesExplored();
+
+        int nodesExploredAssumingDeepReset = 0;
 
         // ** RUN Astar ** 
         while (!frontier.isEmpty()) {
+            nodesExploredAssumingDeepReset++;
+        
+            // Print priority queue
+            System.out.println("Frontier: " + frontier.toString());
+
             BranchNode currentNode = frontier.poll();
             System.out.println("\n\nPerforming iteration: " + iterations + " with branch: " + currentNode.toString());
 
@@ -361,6 +391,8 @@ public class Pathcreator {
             if(currentNode.equals(targetNode)){
                 System.out.println("Found path to goal!");
                 HashMap<BranchNode, ArrayList<BranchNode>> cameFromCopy = createCameFromCopy(cameFrom);
+                System.out.println("Gscore: " + gScore.toString());
+                System.out.println("\n\n\n Assuming deep resets, nodes explored: " + nodesExploredAssumingDeepReset);
                 return reconstructBoolExpr(cameFromCopy, currentNode);
             }
 
@@ -377,6 +409,8 @@ public class Pathcreator {
             System.out.println("Explored: " + explored.toString());
             
             // Explore the neighbors
+            System.out.println("Children:: " + currentNode.getChildren().toString());
+            
             for (BranchNode neighbor: currentNode.getChildren()) {
 
                 System.out.println("Checking out neighbor: " + neighbor);
@@ -420,7 +454,11 @@ public class Pathcreator {
                 // System.out.println("Solution to constraints: " + Arrays.toString(args));
 
                 Interpreter.interpretStartToTarget(startNode.getAm(), args, neighbor, newBranches);
-                int tentativeGScore = gScore.get(currentNode) + neighbor.getH();
+                int d = Interpreter.getActualCost();
+                totalNodesExplored += Interpreter.getNodesExplored();
+                actualCost = d;
+                System.out.println("Actual cost was... " + d);                
+                int tentativeGScore = gScore.get(currentNode) + d;
                 if (tentativeGScore < gScore.get(neighbor)) {
                     // Add last condition to node
 
@@ -517,6 +555,8 @@ public class Pathcreator {
         }
 
         int iterations = 0;
+
+        Pathcreator.setActualCost(0);
         Interpreter.interpretStartToTarget(startNode.getAm(), args, startNode, newBranches);
 
         // ** RUN Astar ** 
@@ -586,7 +626,10 @@ public class Pathcreator {
                 args = solverCheck(pathToNeighbor, elements, intExprs);
                 // System.out.println("Solution to constraints: " + Arrays.toString(args));
 
+
+                Pathcreator.setActualCost(0);
                 Interpreter.interpretStartToTarget(startNode.getAm(), args, neighbor, newBranches);
+                totalNodesExplored += Interpreter.getNodesExplored();
                 int tentativeGScore = gScore.get(currentNode) + neighbor.getH();
                 if (tentativeGScore < gScore.get(neighbor)) {
                     // Add last condition to node
@@ -754,6 +797,26 @@ public class Pathcreator {
         }
 
         return s;
+    }
+
+    public static void setActualCost(int actualCost) {
+        Pathcreator.actualCost = actualCost;
+    }
+
+    public static int getActualCost() {
+        return actualCost;
+    }
+
+    public static void setFoundTarget(boolean foundTarget) {
+        Pathcreator.foundTarget = foundTarget;
+    }
+
+    public static void getFoundTarget(boolean foundTarget) {
+        Pathcreator.foundTarget = foundTarget;
+    }
+
+    public static int getTotalNodesExplored() {
+        return totalNodesExplored;
     }
 
     public static HashMap<AbsoluteMethod, ArrayList<BranchNode>> getOriginalBranches() {

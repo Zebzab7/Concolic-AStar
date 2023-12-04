@@ -99,6 +99,33 @@ public class Simple {
     }
 
     @Case 
+    public static int example(int n) {
+        int x = 0;
+        // boolean flag = false;
+        while (n > 0) {
+            if (n == 1) {
+                x = 1;
+                if (x > 0) {  // Search point
+                    x = -1;
+                }
+            }
+            if (n > 5 && x == 1) {
+                x *= 2;
+                if(x > 0) {  // Search point
+                    x *= 5;
+                }
+            } else { 
+                x *= 3;
+                if(x > 0) {  // Search point
+                    x *= 6;
+                }
+            }
+            n++;
+        }
+        return x;
+    }
+
+    @Case 
     public static int ifInLoopSimple(int n) {
         int x = 10;
         while (n > 0 && n <= 3) {
@@ -138,7 +165,7 @@ public class Simple {
     @Case 
     public static int ifInLoopSimple3(int n) {
         int x = 10;
-        while (n > 0) {
+        if (n > 0) {
             x++;
             x++;
             x++;
@@ -150,8 +177,11 @@ public class Simple {
                 x++;
                 x++;
                 x++;
+                x++;
+                x++;
                 if(n > 5) {  // Search point
                     x *= 5;
+                    x++;
                     x++;
                     x++;
                     if (n > 200) {
@@ -163,12 +193,21 @@ public class Simple {
                     x += 20;
                     x++;
                     x++;
+                    x++;
+                    x++;
+                    x++;
+                    x++;
                     if (n > 50) {
                         x += 1;
                     } 
                 }
             } else { 
+                x++;
+                x++;
+                x++;
                 if(n > 0) {  // Search point
+                    x++;
+                    x++;
                     x++;
                     x++;
                     x *= 6;
@@ -176,11 +215,16 @@ public class Simple {
                         x += 10;
                     } else {
                         x++;
-                    x++;
+                        x++;
+                        x++;
+                        x++;
                         x += 20;
                     }
                 } else {
-                    x += 30;
+                    x++;
+                    x++;
+                    x++;
+                    x++;
                     if (n > 100) {
                         x += 11;
                     } 

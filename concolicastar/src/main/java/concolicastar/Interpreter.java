@@ -26,9 +26,13 @@ public class Interpreter {
 
     public static int actualCost = 0;
 
+    public static int nodesExplored = 0;
+
     public static long lastLoopTarget = 0;
     
     public static BoolExpr lastCondition;
+
+    public static BranchNode targetNode = null;
 
     private static Context ctx;
     static ArrayList<Bytecode> bytecodes = new ArrayList<Bytecode>();
@@ -121,6 +125,7 @@ public class Interpreter {
         System.out.println("Interpreting from start to target: " + targetNode);
         
         actualCost = 0;
+        nodesExplored = 0;
 
         if (args == null) {
             args = new Element[0];
@@ -148,6 +153,7 @@ public class Interpreter {
             boolean branchEncountered = false;
 
             if ((oprString.equals("if") || oprString.equals("ifz"))) {
+                nodesExplored++;
                 currentBranchNode = Pathcreator.findBranchNodeByAMAndIndex(am, stack.getPc(), branches);
                 branchEncountered = true;
 
@@ -182,8 +188,12 @@ public class Interpreter {
 
             Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods(), ctx);
             stack = Operations.doOperation(stack, oprString);
+            // Pathcreator.setActualCost(Pathcreator.getActualCost() + 1);
 
-            actualCost++;
+            if (!targetEncountered) {
+                actualCost++;
+            }
+
             if (oprString.equals("return")) {
                 return stack;
             }
@@ -234,6 +244,7 @@ public class Interpreter {
         count = 0;
         interrupt = false;
         lastLoopTarget = 0;
+        nodesExplored = 0;
         return interpret(am, args);
     }
 
@@ -247,6 +258,7 @@ public class Interpreter {
         if (args == null) {
             args = new Element[0];
         }
+
         Bytecode bc = findMethod(am);
         ProgramStack stack = new ProgramStack(new Stack(), new Stack(), am, 0);
         // stack.initializeBitVector(bc);''
@@ -258,8 +270,21 @@ public class Interpreter {
             JSONObject bytecode = (JSONObject) bc.getBytecode().get(stack.getPc());
             String oprString = (String) bytecode.get("opr");
 
+            if (targetNode != null && (oprString.equals("if") || oprString.equals("ifz"))) {
+                nodesExplored++;
+                if (targetNode.getAm().equals(am) && targetNode.getInstructionIndex() == stack.getPc()) {
+                    ConcolicExecution.setFoundTarget(true);
+                    ConcolicExecution.incrementNode();
+                }
+            }
+
             Operations op = new Operations(bytecode,bootstrapMethods.getBootstrapMethods(), ctx);
             stack = Operations.doOperation(stack, oprString);
+
+            if (!ConcolicExecution.getFoundTarget()) {
+                ConcolicExecution.incrementCost();
+            }
+
             if (oprString.equals("return")) {
                 return stack;
             }
@@ -300,6 +325,14 @@ public class Interpreter {
         return varName.toString();
     }
 
+    public static void setTargetNode(BranchNode targetNode) {
+        Interpreter.targetNode = targetNode;
+    }
+
+    public static BranchNode getTargetNode() {
+        return targetNode;
+    }
+
     public static void setAstarInterpretation(boolean astar) {
         Interpreter.astar = astar;
     }
@@ -309,6 +342,11 @@ public class Interpreter {
             System.out.println(bytecode.toString());
             System.out.println();
         }
+    }
+
+
+    public static int getNodesExplored() {
+        return nodesExplored;
     }
 
     public static int getActualCost() {
