@@ -1,240 +1,192 @@
 package concolicastar;
-import com.fasterxml.jackson.databind.util.Converter;
-import com.microsoft.z3.*;
-public class ConcolicExecution{
-    public static Z3PathState pathState = new Z3PathState();
 
-    public static Element doBinary(String opr, Element a,Element b){
-        java.lang.reflect.Method method;
-        Element v = null;
-        try{
-            method = ConcolicExecution.class.getDeclaredMethod("_"+opr,Element.class, Element.class);
-            v = (Element) method.invoke(ConcolicExecution.class,a,b);
-        } catch (Exception e) {
-            System.out.println("Error: Method might not exist "+ e + " " + opr);
-            e.printStackTrace();
-        }
-        
-        return v;
-    }
+import static org.junit.Assert.assertTrue;
 
-     public static boolean doCompare(String opr, Element a,Element b){
-        java.lang.reflect.Method method;
-        boolean v = false;
-        try{
-            System.out.println("Operation2: "+ opr);
-            method = ConcolicExecution.class.getDeclaredMethod("_"+opr, Element.class, Element.class);
-            v = (boolean) method.invoke(ConcolicExecution.class,a,b);
-        } catch (Exception e) {
-            System.out.println("Error: Method might not exist "+ e);
-            e.printStackTrace();
-        }
-        
-        return v;
-    }
-   
+import java.util.ArrayList;
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.BoolSort;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.FuncDecl;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Model;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Status;
+
+public class ConcolicExecution {
     
-    public static void symAdd(Number a,Number b){
-        // Create a Z3 context
+    public static void testList(Interpreter interpreter){
+        System.out.println("Starting tests!!!");
+        testSimple(interpreter);
+        // testCalls(interpreter);
+        System.out.println("Tests done :O");
+    }
+    private static void testSimple(Interpreter interpreter) {
+        System.out.println("Testing simple");
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "noop"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "zero"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "hundredAndTwo"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "identity"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "add"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "min"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "factorial")); 
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "someFunction"));
+        // testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoop2"));
+    }
+    private static void testCalls(Interpreter interpreter) {
+        System.out.println("Testing calls");
+        //testHelloWorld(interpreter);
+        testFibonacci(interpreter);
+    }
+    private static void testFibonacci(Interpreter interpreter){
         Context ctx = new Context();
-        // Create variables
-        Expr x = ctx.mkConst("x",ctx.mkUninterpretedSort("UnknownType"));
-        Expr y = ctx.mkConst("y",ctx.mkUninterpretedSort("UnknownType"));
-        //  Perform the addition
-        Expr resAdd = ctx.mkAdd(x,y);
+        System.out.println("\nTesting fibonacci");
 
-        //  create a solver
-        Solver solver = ctx.mkSolver();
-        solver.add(ctx.mkEq(resAdd,ctx.mkInt(a.intValue()+b.intValue())));
-        
-        // Check for satisfiability (optional)
-        Status status = solver.check();
-
-        if (status == Status.SATISFIABLE) {
-            // Get the result of a + b
-            System.out.println("Result of a + b: " + solver.getModel().evaluate(resAdd, false));
-        } else {
-            System.out.println("No satisfying assignment.");
-        }
-        
-        // Dispose of the context to free up resources
-        ctx.close();
-        
+        Expr<?> n = ctx.mkIntConst("n");
+        // new Element("null", 20, null)
+        // Input symbolic value of n
+        ProgramStack res = Interpreter.interpret(new AbsoluteMethod("Calls", "fib"),
+             new Element[] {new Element("int", 10, n)});
+        System.out.println(res);
+        Element el = (Element) res.getOp().peek();
+        Number num = (Number) el.getValue();
+        assertTrue(num.intValue() == 89);
     }
-    
-    public static Element _add(Element a,Element b){ 
-        // symAdd(a, b);
-        System.out.println("add: "+ (((Number)a.getValue()).doubleValue() + ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
+    public static void testFunction(Interpreter interpreter, AbsoluteMethod am, BranchNode targetNode) {
+        System.out.println("\nTesting " + am.getMethodName());
+        Context ctx = new Context();
+        Interpreter.setContext(ctx);
 
-            return new Element("double",(Number) (aDouble + bDouble));
+        // Generate list of alphabet: 
+        String[] alphabet = new String[26];
+        for (int i = 0; i < alphabet.length; i++) {
+            alphabet[i] = "" +(char)('a' + i);
         }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-                         // Declare variables
-            pathState.declareVariable("a", pathState.getContext().mkIntSort());
-            pathState.declareVariable("b", pathState.getContext().mkIntSort());
-            pathState.addConstraint(pathState.getContext().mkEq((IntExpr) pathState.getVariable("a"), pathState.getContext().mkInt(aLong)));
-            pathState.addConstraint(pathState.getContext().mkEq((IntExpr) pathState.getVariable("b"), pathState.getContext().mkInt(bLong)));
-            pathState.addConstraint((pathState.getContext().mkEq((IntExpr)pathState.getContext().mkAdd(pathState.getVariable("a"),pathState.getVariable("b")),pathState.getContext().mkInt(aLong+bLong))));
-            // Solve and print the model
-            Model model = pathState.solve();
-            if (model != null) {
-                System.out.println("Model: " + model);
-            } else {
-                System.out.println("No solution found");
+
+        // Read the arguments of the method and assign initial values
+        int count = 0;
+        Bytecode bc = Interpreter.findMethod(am);
+        ArrayList<Element> elements = new ArrayList<Element>();
+        ArrayList<String> argTypes = bc.getArgsTypes();
+        ArrayList<IntExpr> intExprs = new ArrayList<IntExpr>();
+        for (String type : argTypes) {
+            switch (type) {
+                case "int":
+                    intExprs.add(ctx.mkIntConst(alphabet[count]));
+                    elements.add(new Element("int", 0, ctx.mkIntConst(alphabet[count])));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Type not handled");
             }
-            return new Element("long",(Number) (aLong + bLong));
+            count++;
         }
+        BoolExpr fullExpr = null;
+        Solver solver = ctx.mkSolver();
+        int pathsExplored = 0;
+        Interpreter.setAstarInterpretation(false);
+        while (true) {
+            Status satisfiable = solver.check();
+            if (satisfiable == Status.SATISFIABLE) {
+                System.out.println("SATISFIABLE");
+
+                Model model = solver.getModel();
+                System.out.println("model"+ model);
+
+                // Update the values of the elements if they changed
+
+                for (int i = 0; i < elements.size(); i++) {
+                    Element e = elements.get(i);
+                    switch (e.getType()) {
+                        case "int":
+                            // IntExpr expr = (IntExpr) e.getSymbolicValue();
+                            // System.out.println("expr:" + expr );
+                            IntExpr expr = intExprs.get(i);
+                            if (model.getConstInterp(expr) != null) {
+                                e.setValue(Integer.parseInt(model.getConstInterp(expr).toString()));
+                                e.setSymbolicValue(expr);
+                            }
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Type not handled");
+                    }
+                }
+            } else {
+                System.out.println("NOT SATISFIABLE");
+                break;
+            }
+
+            Element[] args = new Element[elements.size()];
+            for (int i = 0; i < elements.size(); i++) {
+                args[i] = elements.get(i);
+            }
+
+            ProgramStack res = Interpreter.interpretFunction(am, args);
+            
+            ArrayList<BoolExpr> boolExprList = res.getBoolExprList();
+            ArrayList<Integer> startBrackets = res.getStartBrackets();
+            ArrayList<Integer> endBrackets = res.getEndBrackets();
+            BoolExpr resExpr = res.getBoolExpr();
+
+            resExpr = ctx.mkNot((BoolExpr) res.getBoolExpr());
+            if (fullExpr == null) {
+                fullExpr = resExpr;
+                solver.add(fullExpr);
+            } else {
+                // fullExpr = ctx.mkAnd(fullExpr, resExpr);
+                solver.add(ctx.mkAnd(fullExpr, resExpr));
+            }
+            System.out.println("\nRESULT:");
+            System.out.println("Solver: " + solver);
+            pathsExplored++;
+        }
+        System.out.println(pathsExplored + " paths explored!\n");
+        ctx.close();
     }
 
-    public static Element _sub(Element a, Element b){
-        System.out.println("sub: "+ (((Number)a.getValue()).doubleValue() - ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble - bDouble));
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong - bLong));
-        }
-    }
+    public static String toInfix(Expr expr) {
+        if (expr.isConst()) {
+            return expr.toString();
+        } else if (expr.isApp()) {
+            FuncDecl func = expr.getFuncDecl();
+            String op = func.getName().toString();
 
-    public static Element _mul(Element a, Element b){
-        System.out.println("mul: "+ (((Number)a.getValue()).doubleValue() * ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble * bDouble));
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong * bLong));
-        }
-    }
+            // Convert Z3 operator to infix operator
+            switch (op) {
+                case "add":
+                    op = "+";
+                    break;
+                case "sub":
+                    op = "-";
+                    break;
+                case "mul":
+                    op = "*";
+                    break;
+                case "div":
+                    op = "/";
+                    break;
+                case ">":
+                    op = ">";
+                    break;
+                case "<":
+                    op = "<";
+                    break;
+                // Add more cases as needed
+                default:
+                    // Unhandled operators
+                    op = " " + op + " ";
+            }
 
-    public static Element _div(Element a, Element b){
-        System.out.println("div: "+ (((Number)a.getValue()).doubleValue() / ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble / bDouble));
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong / bLong));
-        }
-    }
-
-    public static Element _mod(Element a, Element b){
-        System.out.println("div: "+ (((Number)a.getValue()).doubleValue() / ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return new Element("double",(Number) (aDouble % bDouble));
-        }
-        else{
-            Long aLong = Long.parseLong(objecta);
-            Long bLong = Long.parseLong(objectb);
-            return new Element("long",(Number) (aLong % bLong));
-        }
-    }
- 
-    public static boolean _gt(Element a, Element b){
-        System.out.println("gt: "+ (((Number)a.getValue()).doubleValue() > ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return (aDouble > bDouble);
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return aLong > bLong;
-        }
-    }
-
-    public static boolean _lt(Element a, Element b){
-        System.out.println("lt: "+ (((Number)a.getValue()).doubleValue() < ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return aDouble < bDouble;
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return aLong < bLong;
-        }
-    }
-
-    public static boolean _eq(Element a, Element b){
-        System.out.println("eq: "+ (((Number)a.getValue()).doubleValue() == ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return aDouble == bDouble;
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return aLong == bLong;
-        }
-    }
-
-    public static boolean _ge(Element a, Element b){
-        System.out.println("ge: "+ (((Number)a.getValue()).doubleValue() >= ((Number)b.getValue()).doubleValue()));
-        System.out.println("ge: "+ a.getValue() + " " + a.getType());
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return aDouble >= bDouble;
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return aLong >= bLong;
-        }
-    }
-
-    public static boolean _le(Element a, Element b){
-        System.out.println("le: "+ (((Number)a.getValue()).doubleValue() <= ((Number)b.getValue()).doubleValue()));
-        String objecta = "" + ObjectConverter.convert(a.getValue(),a.getType().getClass());
-        String objectb = "" + ObjectConverter.convert(b.getValue(),b.getType().getClass());
-        if(objecta.contains(".") || objectb.contains(".")){
-            Double aDouble =Double.parseDouble(objecta);
-            Double bDouble =Double.parseDouble(objectb);
-            return aDouble <= bDouble;
-        }
-        else{
-            Long aLong =Long.parseLong(objecta);
-            Long bLong =Long.parseLong(objectb);
-            return aLong <= bLong;
+            Expr[] args = expr.getArgs();
+            if (args.length == 2) {
+                // Binary operation
+                return toInfix(args[0]) + " " + op + " " + toInfix(args[1]);
+            } else {
+                // For non-binary, just return the original S-expression
+                return expr.toString();
+            }
+        } else {
+            // For complex expressions, return the original S-expression
+            return expr.toString();
         }
     }
 }

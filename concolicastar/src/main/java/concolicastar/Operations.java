@@ -1,22 +1,28 @@
 package concolicastar;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+
+import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.IntSort;
 
 public class Operations {
     public static JSONObject bc;
     public static JSONArray bm;
-
+    public static Context ctx;
+    public static Z3PathState pathState = new Z3PathState();
+    
     // import bytecode
-    public Operations(JSONObject bc,JSONArray bootstrapMethods){
+    public Operations(JSONObject bc,JSONArray bootstrapMethods, Context ctx){
         Operations.bc = bc;
         Operations.bm = bootstrapMethods;
+        Operations.ctx = ctx;
     }
     
     //In case of boolean or char https://miro.medium.com/v2/resize:fit:720/format:webp/1*AQzGbqmrJfVMJeJ7UVQctw.png
@@ -28,15 +34,13 @@ public class Operations {
             method = Operations.class.getDeclaredMethod("_"+opr, ProgramStack.class);
             stack = (ProgramStack) method.invoke(Operations.class,stack);
         } catch (Exception e) {
-
             System.out.println("Error: Method might not exist "+ e + " " + opr);
             e.printStackTrace();
-
         }
 
         return stack;
     }
-
+    
     public static ProgramStack _load(ProgramStack stack){
         Number index = (Number) bc.get("index");
         String type = (String) bc.get("type");
@@ -52,9 +56,10 @@ public class Operations {
 
     public static ProgramStack _push(ProgramStack Stack){
         JSONObject values = (JSONObject) bc.get("value");
-        Object value = values.get("value");
+        Long value = (Long) values.get("value");
         String type = (String) values.get("type");
-        Element el = new Element(type, value);
+        Element el = new Element(type, value, generateArithExpression(type, value));
+        System.out.println("Push: "+ el);
         Stack.getOp().push(el);
         return Stack;
     }
@@ -78,28 +83,30 @@ public class Operations {
 
         if(bc.get("operant")!= null){
             String oprString = (String) bc.get("operant");
-            Element res = ConcolicExecution.doBinary(oprString,ela,elb); 
+            Element res = ConcolicOperations.doBinary(oprString,ela,elb); 
             Stack.getOp().push(res);
-            
+            System.out.println("Value: "+ res);
         }
 
          // Symbolic execution with a symbolic input
         return Stack;
     }
 
-    public static ProgramStack _store(ProgramStack Stack){
-        Element el = Stack.getOp().pop();
+    public static ProgramStack _store(ProgramStack stack){
+        Element el = stack.getOp().pop();
         if(bc.get("type").equals("ref")){
+            //TODO: Implement this?
             throw new IllegalArgumentException("Not implemented yet");
         }
         Number index = (Number) bc.get("index");
-        if (index.intValue() >= Stack.getLv().size()){
-            Stack.getLv().push(el);
+        System.out.println("Store: "+ el);
+        if (index.intValue() >= stack.getLv().size()){
+            stack.getLv().push(el);
         }
         else{
-            Stack.getLv().replace(index.intValue(), el);        
+            stack.getLv().replace(index.intValue(), el);        
         }
-        return Stack;
+        return stack;
     }
 
     public static ProgramStack _incr(ProgramStack stack){
@@ -111,11 +118,12 @@ public class Operations {
         Number value = (Number) el.getValue();
         Number incrAmount = (Number) bc.get("amount");
         int res = value.intValue() + incrAmount.intValue();
-        Element elCopy = new Element(el.getType(), el.getValue());
+        // Element elCopy = new Element(el.getType(), el.getValue(), el.getSymbolicValue());
 
-        stack.getOp().pop();
-        stack.getOp().push(elCopy);
+        // stack.getOp().pop();
+        // stack.getOp().push(elCopy);
         el.setValue(res);
+        el.setSymbolicValue(ctx.mkAdd((Expr<IntSort>)el.getSymbolicValue(),(Expr<IntSort>) ctx.mkInt(incrAmount.intValue())));
         return stack;
     }
 
@@ -132,38 +140,125 @@ public class Operations {
         Element el2 = (Element) stack.getOp().pop();
         Element el1 = (Element) stack.getOp().pop();
         Number target = (Number) bc.get("target");
-        
 
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, el1, el2);
+            boolean res = ConcolicOperations.doCompare(oprString, el1, el2);
+            // If instruction is condition for a loop, then we only create a new expression the first time
+            // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
+
+
+
+            // if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
+                // stack.getExpressionCreatedVector().set(stack.getPc(), true);
+                BoolExpr expr = generateIfElseBoolExpression(el1,el2,oprString,res);
+                System.out.println("Adding expression: " + expr);
+                stack.addBoolExpr(expr);
+            // }
+
             if (res) {
                 stack.setPc(target.intValue()-1);
-            }                                                                    
+            }                                                                
         }
         return stack;        
     }
-    
-    public static ProgramStack _ifz(ProgramStack Stack){
-        Element el = (Element) Stack.getOp().pop();
+
+    public static ProgramStack _ifz(ProgramStack stack){
+        Element el = (Element) stack.getOp().pop();
 
         Number num = (Number) bc.get("target");
         int target = num.intValue();
 
-        Element zero = new Element("int", 0);
+        Element zero = new Element("int", 0, generateArithExpression("integer", 0));
 
-        
-        //Finds the boolean condition
+        // Finds the boolean condition
         if(bc.get("condition")!= null){
             String oprString = (String) bc.get("condition");
-            boolean res = ConcolicExecution.doCompare(oprString, el, zero);
+            boolean res = ConcolicOperations.doCompare(oprString, el, zero);
+            
+            // If instruction is condition for a loop, then we only create a new expression the first time
+            // if (stack.getBranches().get(stack.getPc()).equals("loop")) {
+
+
+            // if (stack.getExpressionCreatedVector().get(stack.getPc()) == false) {
+                // stack.getExpressionCreatedVector().set(stack.getPc(), true);
+                BoolExpr expr = generateIfElseBoolExpression(el,zero,oprString,res);
+                System.out.println("Adding expression: " + expr);
+                stack.addBoolExpr(expr);
+            // }
             if (res) {
-                Stack.setPc(target-1);
+                stack.setPc(target-1);
             }                                                                    
         }
-        return Stack;
+        return stack;
     }
 
+    public static BoolExpr generateIfElseBoolExpression(Element e1, Element e2, String condition, boolean result)  {
+        ArithExpr<?> expr1 = (ArithExpr<?>) e1.getSymbolicValue();
+        ArithExpr<?> expr2 = (ArithExpr<?>) e2.getSymbolicValue();
+
+        // Expr<IntSort> expr = ctx.mkIntConst("a");
+        // if(e1.getValue().toString().contains(".")||e2.getValue().toString().contains(".")){
+        //     //double
+        // }else{
+        //     //long
+        // }
+        // BoolExpr resBool = ctx.mkBool(result);
+        switch(condition) {
+            case "gt":
+                if (result) {
+                    return ctx.mkGt(expr1, expr2);
+                } else {
+                    return ctx.mkLe(expr1, expr2);
+                }
+            case "ge":
+                if (result) {
+                    return ctx.mkGe(expr1, expr2);
+                } else {
+                    return ctx.mkLt(expr1, expr2);
+                }
+            case "lt":
+                if (result) {
+                    return ctx.mkLt(expr1, expr2);
+                } else {
+                    return ctx.mkGe(expr1, expr2);
+                }
+            case "le":
+                if (result) {
+                    return ctx.mkLe(expr1, expr2);
+                } else {
+                    return ctx.mkGt(expr1, expr2);
+                }
+            case "eq":
+                if (result) {
+                    return ctx.mkEq(expr1, expr2);
+                } else {
+                    return ctx.mkNot(ctx.mkEq(expr1, expr2));
+                }
+            case "ne":
+                if (result) {
+                    return ctx.mkNot(ctx.mkEq(expr1, expr2));
+                } else {
+                    return ctx.mkEq(expr1, expr2);
+                }
+            default:
+                throw new IllegalArgumentException("Not implemented yet" + condition);
+        }
+    }
+    
+    public static ArithExpr<?> generateArithExpression(String type, Object value) {
+        // TODO: Implement all cases
+        Number num = (Number) value;
+        switch (type) {
+            case "integer":
+                return ctx.mkInt(num.intValue());	
+            default:
+                break;
+        }
+
+        return null;
+    }
+    
     public static ProgramStack _goto(ProgramStack Stack){
         Number numIndex = (Number) bc.get("target");
         int target = numIndex.intValue();
@@ -178,7 +273,7 @@ public class Operations {
         JSONObject fieldType = (JSONObject) field.get("type");
         String typeName = (String) fieldType.get("name");
         String typeKind = (String) fieldType.get("kind");
-        Element el  = new Element(typeKind, typeName);
+        Element el  = new Element(typeKind, typeName, generateArithExpression(typeKind, typeName));
         Stack.getOp().push(el);
         return Stack;
     }
@@ -202,7 +297,7 @@ public class Operations {
                     Element e = null;
                     for (int j = 0; j < args.size(); j++) { // 4 
                         e = (Element) Stack.getOp().pop();
-                        argElments[j] = new Element(e.getType(), e.getValue());
+                        argElments[j] = new Element(e.getType(), e.getValue(), e.getSymbolicValue());
                         System.out.println("argElments: "+ argElments[j].toString());
                     }
                 }
@@ -233,7 +328,7 @@ public class Operations {
             case "special":
                 String methodName2 = (String) method.get("name");
                 if (methodName2.equals("<init>")) {
-                    Element initEl = new Element("<init>", null);
+                    Element initEl = new Element("<init>", null, null);
                     Stack.getOp().push(initEl);
                 }else{
                     throw new IllegalArgumentException("Invoke type not supported"+ access);
@@ -288,16 +383,15 @@ public class Operations {
             throw new IllegalArgumentException("Not implemented yet");
         }
         
-
         switch(dimension){
             case 1:
-                Stack.getLv().push(new Element(arrayType, Array.newInstance(type.getClass(), 0)));
+                Stack.getLv().push(new Element(arrayType, Array.newInstance(type.getClass(), 0), null));
                 break;
             case 2:
-                Stack.getLv().push(new Element (arrayType,Array.newInstance(type.getClass(), 0,0)));
+                Stack.getLv().push(new Element (arrayType,Array.newInstance(type.getClass(), 0,0), null));
                 break;
             case 3: 
-                Stack.getLv().push(new Element (arrayType,Array.newInstance(type.getClass(), 0,0,0)));
+                Stack.getLv().push(new Element (arrayType,Array.newInstance(type.getClass(), 0,0,0), null));
                 break;
             default:
                 throw new IllegalArgumentException("Not implemented yet");
@@ -340,7 +434,7 @@ public class Operations {
         switch(dim){
             case 1:
                 int[] arr1 = (int[]) arr.getValue();
-                Stack.getOp().push(new Element("int", arr1[indexValue]));
+                Stack.getOp().push(new Element("int", arr1[indexValue], null));
                 break;
             default:
                 throw new IllegalArgumentException("Not implemented yet");

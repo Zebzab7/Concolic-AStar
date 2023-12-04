@@ -1,27 +1,44 @@
 package concolicastar;
 
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 
-import org.json.simple.*;
-import org.json.simple.parser.*;
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
 
-/**
- * Hello world!
- *
- */
+import java.time.Instant;
+
 public class App 
 {
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
+        
+        // BranchNode targetNode 
+        //     = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple3"), 38);
+        
+        compareSearchAlgorithms();
+        
+    }
+    
+    public static void compareSearchAlgorithms() {
         ArrayList<JsonFile> files;
-        files = Folders.findFiles("course-02242-examples-main/decompiled/dtu/compute/exec/",".json");
-
+        files = Folders.findFiles("projects/course-examples/json",".json");
         Interpreter interpreter = new Interpreter(files);
-        // interpreter.interpret("method");
-        Tests.testList(interpreter);
+        Interpreter.setContext(new Context());
+        Pathcreator pc = new Pathcreator();
+
+        // Instant start = Instant.now();
+        // Instant end = Instant.now();
+        // long executionTime = end.toEpochMilli() - start.toEpochMilli();
+        // System.out.println("Execution time is: " + executionTime + "milliseconds");
+    
+        // ** TEST SETUP **
+        BranchNode targetNode = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple3"), 38);
+        BranchNode startNode = pc.buildHeuristicMap(targetNode);
+        BoolExpr expr = pc.aStar(startNode, targetNode, new HashSet<BranchNode>());
+
+        System.out.println("Final expression after performing Astar: " + expr);
+
+        // ConcolicExecution.testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoopSimple3"), targetNode);
     }
 }

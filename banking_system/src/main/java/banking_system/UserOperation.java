@@ -1,0 +1,21 @@
+package banking_system;
+
+public enum UserOperation {
+    // Admin operations
+    CREATE_CUSTOMER_ACCOUNT,
+    DELETE_CUSTOMER_ACCOUNT,
+    MODIFY_CUSTOMER_DETAILS,
+    VIEW_TRANSACTION_HISTORY,
+
+    // Manager operations
+    MODIFY_ACCOUNT_DETAILS,
+    VIEW_CUSTOMER_DETAILS,
+    PERFORM_TRANSACTIONS,
+
+    // Customer operations
+    DEPOSIT,
+    WITHDRAW,
+    TRANSFER,
+    VIEW_ACCOUNT_DETAILS,
+    VIEW_TRANSACTION_HISTORY_CUSTOMER
+}

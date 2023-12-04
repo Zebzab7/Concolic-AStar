@@ -1,17 +1,36 @@
 package concolicastar;
 
+import java.util.ArrayList;
+
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 public class Bytecode {
     
-    AbsoluteMethod am;
-    JSONArray bytecode;
+    private AbsoluteMethod am;
+    private ArrayList<String> argsType;
+    private JSONArray bytecode;
 
-    public Bytecode(String className, String methodName, JSONArray bytecode) {
+    public Bytecode(String className, String methodName, JSONArray bytecode, JSONArray params) {
         this.am = new AbsoluteMethod(className, methodName);
         this.bytecode = bytecode;
+        argsType = new ArrayList<String>();
+        for (int i = 0; i < params.size(); i++) {
+            JSONObject param = (JSONObject) params.get(i);
+            JSONObject typeObject = (JSONObject) param.get("type");
+            if ((String) typeObject.get("base") != null) {
+                String type = (String) typeObject.get("base");
+                argsType.add(type);
+            }
+        }
     }
 
+    public ArrayList<String> getArgsTypes() {
+        return argsType;
+    }
+    public void setArgsType(ArrayList<String> argsType) {
+        this.argsType = argsType;
+    }
     public JSONArray getBytecode() {
         return bytecode;
     }
@@ -30,6 +49,7 @@ public class Bytecode {
         return am.getClassName() + "." + am.getMethodName() + ":\n" + bytecode.toString();
     }
 }
+
 class BootstrapMethods{
     AbsoluteMethod am;
     JSONArray bootstrapMethods;
