@@ -14,6 +14,10 @@ import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 
 public class ConcolicExecution {
+
+    public static int actualCost = 0;
+    public static int totalNodesExplored = 0;
+    public static boolean foundTarget = false;
     
     public static void testList(Interpreter interpreter){
         System.out.println("Starting tests!!!");
@@ -57,6 +61,9 @@ public class ConcolicExecution {
         Context ctx = new Context();
         Interpreter.setContext(ctx);
 
+        totalNodesExplored = 0;
+        actualCost = 0;
+
         // Generate list of alphabet: 
         String[] alphabet = new String[26];
         for (int i = 0; i < alphabet.length; i++) {
@@ -84,6 +91,7 @@ public class ConcolicExecution {
         Solver solver = ctx.mkSolver();
         int pathsExplored = 0;
         Interpreter.setAstarInterpretation(false);
+        Interpreter.setTargetNode(targetNode);
         while (true) {
             Status satisfiable = solver.check();
             if (satisfiable == Status.SATISFIABLE) {
@@ -119,13 +127,22 @@ public class ConcolicExecution {
             for (int i = 0; i < elements.size(); i++) {
                 args[i] = elements.get(i);
             }
-
-            ProgramStack res = Interpreter.interpretFunction(am, args);
             
+            resetCost();
+            setFoundTarget(false);
+            ProgramStack res = Interpreter.interpretFunction(am, args);
+            totalNodesExplored += Interpreter.getNodesExplored();
+
             ArrayList<BoolExpr> boolExprList = res.getBoolExprList();
             ArrayList<Integer> startBrackets = res.getStartBrackets();
             ArrayList<Integer> endBrackets = res.getEndBrackets();
             BoolExpr resExpr = res.getBoolExpr();
+
+            if (foundTarget) {
+                // System.out.println("resExpr: " + resExpr);
+                // System.out.println("Actual cost was: " + actualCost);
+                break;
+            }
 
             resExpr = ctx.mkNot((BoolExpr) res.getBoolExpr());
             if (fullExpr == null) {
@@ -139,8 +156,41 @@ public class ConcolicExecution {
             System.out.println("Solver: " + solver);
             pathsExplored++;
         }
+
         System.out.println(pathsExplored + " paths explored!\n");
         ctx.close();
+    }
+
+    public static void incrementNode() {
+        totalNodesExplored++;
+    }
+
+    public static int getTotalNodesExplored() {
+        return totalNodesExplored;
+    }
+
+    public static int getActualCost() {
+        return actualCost;
+    }
+
+    public static void setActualCost(int actualCost) {
+        ConcolicExecution.actualCost = actualCost;
+    }
+
+    public static void setFoundTarget(boolean foundTarget) {
+        ConcolicExecution.foundTarget = foundTarget;
+    }
+
+    public static boolean getFoundTarget() {
+        return foundTarget;
+    }
+
+    public static void incrementCost() {
+        actualCost++;
+    }
+
+    public static void resetCost() {
+        actualCost = 0;
     }
 
     public static String toInfix(Expr expr) {
