@@ -33,12 +33,34 @@ public class App
         // System.out.println("Execution time is: " + executionTime + "milliseconds");
     
         // ** TEST SETUP **
-        BranchNode targetNode = new BranchNode(new AbsoluteMethod("Simple", "ifInLoopSimple3"), 38);
+        BranchNode targetNode = new BranchNode(new AbsoluteMethod("Simple", 
+            "ifInLoopSimple3"), 63);
+            
+        // System.out.println("Final expression after performing Astar: " + expr);
+        
+
+        /*
+         * Concolic execution
+         */
+        ConcolicExecution.testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoopSimple3"), targetNode);
+        int actualCostConcolic = ConcolicExecution.getActualCost();
+        int totalNodesExploredConcolic = ConcolicExecution.getTotalNodesExplored();
+        
+        /*
+         * Astar execution
+         */
+        Interpreter.setContext(new Context());
         BranchNode startNode = pc.buildHeuristicMap(targetNode);
         BoolExpr expr = pc.aStar(startNode, targetNode, new HashSet<BranchNode>());
 
-        System.out.println("Final expression after performing Astar: " + expr);
+        int actualCostAstar = Pathcreator.getActualCost();
+        int totalNodesExploredAstar = Pathcreator.getTotalNodesExplored();
 
-        // ConcolicExecution.testFunction(interpreter, new AbsoluteMethod("Simple", "ifInLoopSimple3"), targetNode);
+        System.out.println("Actual cost of concolic execution: " + actualCostConcolic);
+        System.out.println("Nodes explored concolic: " + totalNodesExploredConcolic);
+
+        System.out.println("Actual cost of Astar: " + actualCostAstar);
+        System.out.println("Nodes explored Astar: " + totalNodesExploredAstar);
+
     }
 }
