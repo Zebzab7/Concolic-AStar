@@ -235,6 +235,140 @@ public class Simple {
         return x;
     }
 
+    public static int testWide(int x){
+        if(x>0){
+            return 0;
+        }else if (x>1){
+            return 1;
+        }else if (x>2){
+            return 2;
+        }else if (x>3){
+            return 3;
+        }else if (x>4){
+            return 4;
+        }else if (x>5){
+            return 5;
+        }else if (x>6){
+            return 6;
+        }else if (x>7){
+            return 7;
+        }else if (x>8){
+            return 8;
+        }else if (x>9){
+            return 9;
+        }else if (x>10){
+            return 10;
+        }else if (x>11){
+            return 11;
+        }else if (x>12){
+            return 12;
+        }else if (x>13){
+            return 13;
+        }else if (x>14){
+            return 14;
+        }else if (x>15){
+            return 15;
+        }else if (x>16){
+            return 16;
+        }else if (x>17){
+            return 17;
+        }else if (x>18){
+            return 18;
+        }else if (x>19){
+            return 19;
+        }else{
+            return 20;
+        }
+    }
+    
+    public static int testDeep(int x){
+        if(x>0){
+            if(x>1){
+                if(x>2){
+                    if(x>3){
+                        if(x>4){
+                            if(x>5){
+                                if(x>6){
+                                    if(x>7){
+                                        if(x>8){
+                                            if(x>9){
+                                                if(x>10){
+                                                    if(x>11){
+                                                        if(x>12){
+                                                            if(x>13){
+                                                                if(x>14){
+                                                                    if(x>15){
+                                                                        if(x>16){
+                                                                            if(x>17){
+                                                                                if(x>18){
+                                                                                    if(x>19){
+                                                                                        if(x>20){
+                                                                                            return 21;
+                                                                                        }
+                                                                                    }else{
+                                                                                        return 19;
+                                                                                    }
+                                                                                }else{
+                                                                                    return 19;
+                                                                                }
+                                                                            }else{
+                                                                                return 18;
+                                                                            }
+                                                                        }else{
+                                                                            return 17;
+                                                                        }
+                                                                    }else{
+                                                                        return 16;
+                                                                    }
+                                                                }else{
+                                                                    return 15;
+                                                                }
+                                                            }else{
+                                                                return 14;
+                                                            }
+                                                        }else{
+                                                            return 13;
+                                                        }
+                                                    }else{
+                                                        return 12;
+                                                    }
+                                                }else{
+                                                    return 11;
+                                                }
+                                            }else{
+                                                return 10;
+                                            }
+                                        }else{
+                                            return 9;
+                                        }
+                                    }else{
+                                        return 8;
+                                    }
+                                }else{
+                                    return 6;
+                                }
+                            }else{
+                                return 5;
+                            }
+                        }else{
+                            return 4;
+                        }
+                    }else{
+                        return 3;
+                    }
+                }else{
+                    return 2;
+                }
+            }else{
+                return 1;
+            }
+        }else if (x>1){
+            return 1;
+        }
+        return 0;
+    }
+
+
     // @Case 
     // public static int ifInLoopSimple3(int n) {
     //     int x = 10;
